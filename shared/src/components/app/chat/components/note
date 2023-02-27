@@ -1,0 +1,161 @@
+{/* 
+ {/* Footer */}
+ <View
+ style={
+   {
+     // flexDirection: "row",
+     // justifyContent: "space-between",
+     // alignItems: "center",
+     // padding: 10,
+   }
+ }
+>
+ {/* Input */}
+ <View style={{}}>
+   <Input
+     rightIcon={<Right />}
+     leftIcon={<Left />}
+     inputContainerStyle={{
+       backgroundColor: Colors.lightGray,
+       borderRadius: 10,
+       height: 60,
+       // padding: 10,
+       borderBottomWidth: 0,
+     }}
+     InputComponent={() => (
+       <View
+         style={{
+           flex: 1,
+           // flexDirection: "row",
+           alignItems: "center",
+           justifyContent: "center",
+         }}
+       >
+         <Input
+           inputContainerStyle={{
+             // backgroundColor: Colors.lightGray,
+             // borderRadius: 10,
+             // height: 60,
+             // padding: 10,
+             borderBottomWidth: 0,
+           }}
+           placeholder="Type a message"
+           placeholderTextColor="#fff"
+           inputStyle={{ color: "#fff" }}
+         />
+       </View>
+     )}
+   />
+ </View>
+ {/* Send
+ <View>
+   <Feather name="send" size={24} color="#fff" />
+ </View> */}
+</View>
+*/}
+
+
+
+
+
+=============
+
+<View
+style={{
+  flexDirection: "row",
+  paddingBottom: 10,
+  borderBottomColor: Colors.gray,
+  borderBottomWidth: 1,
+}}
+>
+{/* Back */}
+<TouchableOpacity
+  style={{
+    // flex: 1,
+    justifyContent: "center",
+    alignItems: "flex-start",
+    marginLeft: 10,
+  }}
+  onPress={() => navigation.goBack()}
+>
+  <Ionicons name="chevron-back" size={40} color="#fff" />
+</TouchableOpacity>
+{/* Photo & Title */}
+<TouchableOpacity
+  style={{
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  }}
+  onPress={() => navigation.navigate("Person")}
+>
+  {/* Profile Photo */}
+  <View
+    style={{
+      marginHorizontal: 10,
+    }}
+  >
+    <Image
+      source={require("../../../../../assets/icon.png")}
+      style={{
+        width: 50,
+        height: 50,
+        borderRadius: 50,
+      }}
+      resizeMode="contain"
+    />
+  </View>
+  <View
+    style={{
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "flex-start",
+    }}
+  >
+    <Text style={{ color: "#fff", fontSize: 20, fontWeight: "bold" }}>
+      John Doe
+    </Text>
+    <Text
+      style={{ color: Colors.bottleGreen, fontSize: 12, marginTop: 5 }}
+    >
+      Online
+    </Text>
+  </View>
+</TouchableOpacity>
+{/* Options */}
+<View
+  style={{
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    marginHorizontal: 10,
+  }}
+>
+  <View
+    style={{
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    }}
+  >
+    <TouchableOpacity onPress={() => console.log("Phone Call")}>
+      <Feather
+        style={{ marginRight: 20 }}
+        name="phone"
+        size={25}
+        color="#fff"
+      />
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => console.log("Video Call")}>
+      <Feather
+        style={{ marginRight: 20 }}
+        name="video"
+        size={25}
+        color="#fff"
+      />
+    </TouchableOpacity>
+  </View>
+</View>
+</View>
