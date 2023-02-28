@@ -57,3 +57,14 @@ export const CourseSchema = Yup.object().shape({
     .required("Instructor is required")
     .min(2, "Instructor must be at least 2 characters"),
 });
+
+// Request Help
+export const RequestHelp = Yup.object().shape({
+  title: Yup.string()
+    .required("Title is required")
+    .min(2, "Title must be at least 2 characters"),
+  description: Yup.string()
+    .required("Description is required")
+    .min(20, "Description must be at least 20 characters"),
+  // tag: Yup.string().required("Tag is required"),
+});

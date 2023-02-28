@@ -29,6 +29,7 @@ import {
   arrayRemove,
   serverTimestamp,
   arrayUnion,
+  addDoc,
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
@@ -432,10 +433,15 @@ const App = {
     }
   },
 
+  // Create Shared UID
+  createSharedUID: (uid1, uid2) => {
+    return `${uid1}-${uid2}`;
+  },
+
   // Request for Help
-  requestForHelp: async (title, description, tag) => {
+  requestForHelp: async (title, description, tfUID) => {
     try {
-      const uid = Firebase.getCurrentUser().uid;
+      const uid = Firebase.Auth.getCurrentUser().uid;
       const docRef = doc(db, "users", uid);
 
       const docSnap = await getDoc(docRef);
@@ -443,13 +449,20 @@ const App = {
       if (docSnap.exists()) {
         const user = docSnap.data();
 
-        await addDoc(collection(db, "requestForHelp"), {
-          title,
-          description,
-          tag,
-          user,
-          createdAt: serverTimestamp(),
-        });
+        // Get TF User
+        const tf = await getDoc(doc(db, "users", tfUID));
+
+        await setDoc(
+          doc(db, "requestForHelp", App.createSharedUID(tfUID, user.uid)),
+          {
+            title,
+            description,
+            tfUID: tfUID,
+            requestor: user,
+            tf: tf.data(),
+            createdAt: serverTimestamp(),
+          }
+        );
 
         return true;
       }

@@ -58,16 +58,10 @@ const useOnlinePresence = () => {
       isTF: User.isTF,
       uid: uid,
       tags: User.tags,
-    }).then(() => {
-      console.log("Online status is set as true");
     });
 
     // Set offline status and console log
-    onDisconnect(docRef)
-      .remove()
-      .then(() => {
-        console.log("Online status is set as false, on disconnect configured");
-      });
+    onDisconnect(docRef).remove();
   };
 
   // Watch network state

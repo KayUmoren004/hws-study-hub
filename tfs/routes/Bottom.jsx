@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import Colors from "../../shared/src/utils/Colors";
 import { UserContext } from "../../shared/src/helpers/UserContext";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 
 // Local Screens
@@ -14,6 +14,31 @@ import Profile from "../../shared/src/screens/app/Profile";
 import Tags from "../../shared/src/screens/app/Tags";
 import Notifications from "../../shared/src/screens/app/Notifications";
 import Settings from "../../shared/src/screens/app/Settings";
+
+// Firebase
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import "firebase/compat/firestore";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
+  getDoc,
+  deleteDoc,
+  getDocs,
+  onSnapshot,
+  arrayRemove,
+  serverTimestamp,
+  arrayUnion,
+  addDoc,
+} from "firebase/firestore";
+import FirebaseConfig from "../../shared/src/helpers/config/FirebaseConfig";
+
+const app = initializeApp(FirebaseConfig);
+const db = getFirestore(app);
 
 let sName;
 
@@ -65,9 +90,11 @@ const options = (
   rightIconSize = 30,
   shown = true,
   fontSize = 40,
-  fontColor = Colors.white
+  fontColor = Colors.white,
+  counter = null
 ) => ({
   headerShown: shown,
+  tabBarBadge: counter === null || counter === 0 ? null : counter,
   headerTitleStyle: {
     fontSize: fontSize,
     fontWeight: "bold",
@@ -134,6 +161,20 @@ const Bottom = ({ navigation }) => {
     sName = name;
   }
 
+  const [requestForHelp, setRequestForHelp] = useState(null);
+
+  // Listen for changes in "requestForHelp" collection in firestore and get its length
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      collection(db, "requestForHelp"),
+      (query) => {
+        setRequestForHelp(query.docs.length);
+      }
+    );
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <Tab.Navigator screenOptions={screenOptions}>
       <Tab.Screen
@@ -143,7 +184,11 @@ const Bottom = ({ navigation }) => {
           ["", "plus"],
           () => {},
           () => navigation.navigate("Tags"),
-          [0, 30]
+          [0, 30],
+          true,
+          40,
+          Colors.white,
+          requestForHelp
         )}
       />
       {/* <Tab.Screen

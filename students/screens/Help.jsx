@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 
 // Dependencies
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { FlatList, SafeAreaView, StyleSheet, Text, View } from "react-native";
 
 import { UserContext } from "../../shared/src/helpers/UserContext";
 
@@ -53,18 +53,22 @@ import {
 } from "firebase/database";
 
 import FirebaseConfig from "../../shared/src/helpers/config/FirebaseConfig";
+import RightIcon from "../../shared/src/components/app/RightIcon";
+import Colors from "../../shared/src/utils/Colors";
+import TFView from "../../shared/src/components/app/TFView";
 
 const app = initializeApp(FirebaseConfig);
 const auth = getAuth(app);
 const realtime = getDatabase(app);
 const firestore = getFirestore(app);
 
-const Help = () => {
+const Help = ({ navigation }) => {
   // Context
   const [User] = useContext(UserContext);
 
   // State
   const [OnlineTFs, setOnlineTFs] = useState(null);
+  const [filteredTFs, setFilteredTFs] = useState(null);
 
   // Get all online TFs
   const getOnlineTFs = async () => {
@@ -73,13 +77,11 @@ const Help = () => {
       onValue(onlineRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
-          // For every online user, find their user data
-          const onlineUsers = Object.keys(data).map(async (uid) => {
-            const user = await findUser(uid);
-            return user;
-          });
-          // Set state
-          Promise.all(onlineUsers).then((users) => {
+          // For every online user with isTF === true, find their user data
+          const onlineTFs = Object.keys(data)
+            .filter((uid) => data[uid].isTF)
+            .map((uid) => findUser(uid));
+          Promise.all(onlineTFs).then((users) => {
             setOnlineTFs(users);
           });
         } else {
@@ -90,6 +92,8 @@ const Help = () => {
       console.log("Error @Help.getOnlineUsers: ", err.message);
     }
   };
+
+  console.log("Online TFs: ", OnlineTFs);
 
   // Find user in firestore given uid
   const findUser = async (uid) => {
@@ -111,18 +115,58 @@ const Help = () => {
     getOnlineTFs();
   }, []);
 
+  console.log("Filtered TFs: ", filteredTFs);
+
+  // Filter navigation
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerRight: () => (
+        <RightIcon
+          name="filter"
+          onPress={() =>
+            navigation.navigate("Filter", {
+              setFilteredTFs: setFilteredTFs,
+            })
+          }
+          size={24}
+          color={Colors.white}
+        />
+      ),
+    });
+  }, [navigation]);
+
   // Filter by tag
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View>
-        <Text style={{ color: "#fff" }}>Online Now</Text>
-        <Text style={{ color: "#fff" }}>{OnlineTFs[0].email}</Text>
+        <Text
+          style={{
+            color: Colors.bottleGreen,
+            fontSize: 24,
+            fontWeight: "bold",
+            padding: 10,
+            marginLeft: 5,
+          }}
+        >
+          Online Now
+        </Text>
       </View>
       {/* Body */}
-      <View>
-        <Text style={{ color: "#fff" }}>Help</Text>
+      <View
+        style={{
+          flex: 1,
+        }}
+      >
+        <FlatList
+          data={filteredTFs ? filteredTFs : OnlineTFs}
+          renderItem={({ item }) => (
+            <TFView TFs={item} navigation={navigation} />
+          )}
+          keyExtractor={(item) => item.uid}
+        />
       </View>
     </SafeAreaView>
   );

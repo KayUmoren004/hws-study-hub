@@ -144,7 +144,7 @@ const Bottom = ({ navigation }) => {
         options={options(
           ["", "filter"],
           () => {},
-          () => navigation.navigate("Tags"),
+          () => {},
           [25, 25]
         )}
       />
