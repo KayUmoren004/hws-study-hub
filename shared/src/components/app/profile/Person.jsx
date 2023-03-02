@@ -33,7 +33,7 @@ const Loading = () => {
 };
 
 const Person = ({ route, navigation }) => {
-  const { person } = route.params;
+  const { person, data } = route.params;
 
   // context
   const [User] = useContext(UserContext);
@@ -44,6 +44,9 @@ const Person = ({ route, navigation }) => {
   const [requested, setRequested] = useState(false);
   const [helpR, setHelpR] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Get First Name from person.name
+  const fName = person.name.split(" ")[0];
 
   // Request for help
   const requestHelp = async (values) => {
@@ -70,17 +73,7 @@ const Person = ({ route, navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Close Button */}
-      {/* <TouchableOpacity
-        style={{
-          position: "absolute",
-          top: 50,
-          right: 15,
-          zIndex: 1,
-        }}
-        onPress={() => navigation.goBack()}
-      >
-        <Feather name="x" size={30} color="#ff0000" />
-      </TouchableOpacity> */}
+
       <View
         style={{
           flex: 1,
@@ -138,137 +131,218 @@ const Person = ({ route, navigation }) => {
             </Text>
           </View>
 
-          {helpR ? (
+          {person.isTF ? (
+            helpR ? (
+              <View
+                style={{
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginTop: 20,
+                  marginBottom: 10,
+                }}
+              >
+                <Loading />
+                <Text
+                  style={{ color: Colors.lavenderBlue, textAlign: "center" }}
+                >
+                  Requesting for help...
+                </Text>
+              </View>
+            ) : (
+              <Formik
+                initialValues={{
+                  title: "",
+                  description: "",
+                  // tag: "",
+                }}
+                validationSchema={RequestHelp}
+                onSubmit={(values) => requestHelp(values)}
+              >
+                {(props) => (
+                  <View>
+                    {requested ? (
+                      <>
+                        {/* Title Input */}
+                        <View>
+                          <Input
+                            placeholder="Title"
+                            value={props.values.title}
+                            onChangeText={props.handleChange("title")}
+                            inputContainerStyle={{
+                              borderBottomWidth: 0,
+                            }}
+                            errorMessage={props.errors.title}
+                            style={{
+                              color: Colors.eggshell,
+                              padding: 10,
+                              borderBottomColor: Colors.eggshell,
+                              borderBottomWidth: 1,
+                            }}
+                          />
+                        </View>
+                        {/* Description Input */}
+                        <View>
+                          <Input
+                            placeholder="Description"
+                            value={props.values.description}
+                            onChangeText={props.handleChange("description")}
+                            errorMessage={props.errors.description}
+                            inputContainerStyle={{
+                              borderBottomWidth: 0,
+                            }}
+                            style={{
+                              color: Colors.eggshell,
+                              padding: 10,
+                              borderBottomColor: Colors.eggshell,
+                              borderBottomWidth: 1,
+                            }}
+                            multiline={true}
+                          />
+                          {/* Tag */}
+                        </View>
+                      </>
+                    ) : null}
+                    {/* Options */}
+                    {loading ? (
+                      <Loading />
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (!requested) {
+                            setRequested(true);
+                          } else {
+                            props.handleSubmit();
+                          }
+                        }}
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          alignSelf: "center",
+                          marginBottom: 20,
+                          backgroundColor: Colors.darkByzantium,
+                          padding: 10,
+                          borderRadius: 10,
+                          width: "50%",
+                        }}
+                      >
+                        {/* Options */}
+                        {requested ? (
+                          <Feather
+                            name="help-circle"
+                            size={20}
+                            color={Colors.eggshell}
+                          />
+                        ) : null}
+                        <Text
+                          style={{
+                            color: Colors.eggshell,
+                            fontSize: 20,
+                            fontWeight: "bold",
+                            marginHorizontal: 10,
+                            textAlign: "center",
+                            textAlignVertical: "center",
+                          }}
+                        >
+                          {requested ? "Request Help" : "Need Help?"}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+              </Formik>
+            )
+          ) : (
             <View
               style={{
                 flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
+                // justifyContent: "center",
+                // alignItems: "center",
                 marginTop: 20,
                 marginBottom: 10,
+                marginHorizontal: 10,
               }}
             >
-              <Loading />
-              <Text style={{ color: Colors.lavenderBlue, textAlign: "center" }}>
-                Requesting for help...
+              <Text
+                style={{
+                  color: Colors.white,
+                  fontSize: 20,
+                  marginBottom: 5,
+                  fontWeight: "bold",
+                }}
+              >
+                Title:{" "}
+                <Text
+                  style={{
+                    color: Colors.white,
+                    fontSize: 20,
+                    marginBottom: 5,
+                    fontWeight: "normal",
+                  }}
+                >
+                  {data.title}
+                </Text>
               </Text>
+              <Text
+                style={{
+                  color: Colors.white,
+                  fontSize: 20,
+                  marginBottom: 5,
+                  fontWeight: "bold",
+                }}
+              >
+                Description:{" "}
+                <Text
+                  style={{
+                    color: Colors.white,
+                    fontSize: 20,
+                    marginBottom: 5,
+                    fontWeight: "normal",
+                  }}
+                >
+                  {data.description}
+                </Text>
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  navigation.goBack();
+                  navigation.navigate("Message", {
+                    person,
+                  });
+                  // Close modal
+                  // navigation.goBack();
+                }}
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  alignSelf: "center",
+                  marginVertical: 20,
+                  backgroundColor: Colors.darkByzantium,
+                  padding: 10,
+                  borderRadius: 10,
+                  width: "50%",
+                }}
+              >
+                {/* Options */}
+
+                {/* <Feather name="help-circle" size={20} color={Colors.eggshell} /> */}
+
+                <Text
+                  style={{
+                    color: Colors.eggshell,
+                    fontSize: 20,
+                    fontWeight: "bold",
+                    marginHorizontal: 10,
+                    textAlign: "center",
+                    textAlignVertical: "center",
+                  }}
+                >
+                  Chat with {fName}
+                </Text>
+              </TouchableOpacity>
             </View>
-          ) : (
-            <Formik
-              initialValues={{
-                title: "",
-                description: "",
-                // tag: "",
-              }}
-              validationSchema={RequestHelp}
-              onSubmit={(values) => requestHelp(values)}
-            >
-              {(props) => (
-                <View>
-                  {requested ? (
-                    <>
-                      {/* Title Input */}
-                      <View>
-                        <Input
-                          placeholder="Title"
-                          value={props.values.title}
-                          onChangeText={props.handleChange("title")}
-                          inputContainerStyle={{
-                            borderBottomWidth: 0,
-                          }}
-                          errorMessage={props.errors.title}
-                          style={{
-                            color: Colors.eggshell,
-                            padding: 10,
-                            borderBottomColor: Colors.eggshell,
-                            borderBottomWidth: 1,
-                          }}
-                        />
-                      </View>
-                      {/* Description Input */}
-                      <View>
-                        <Input
-                          placeholder="Description"
-                          value={props.values.description}
-                          onChangeText={props.handleChange("description")}
-                          errorMessage={props.errors.description}
-                          inputContainerStyle={{
-                            borderBottomWidth: 0,
-                          }}
-                          style={{
-                            color: Colors.eggshell,
-                            padding: 10,
-                            borderBottomColor: Colors.eggshell,
-                            borderBottomWidth: 1,
-                          }}
-                          multiline={true}
-                        />
-                        {/* Tag */}
-                        {/* <ScrollView
-                    contentContainerStyle={{
-                      flexDirection: "row",
-                      justifyContent: "flex-start",
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                    }}
-                    horizontal={true}
-                  >
-                    {person.tags.map((tag, idx) => (
-                      <Tag tag={tag} key={idx} />
-                    ))}
-                  </ScrollView> */}
-                      </View>
-                    </>
-                  ) : null}
-                  {/* Options */}
-                  {loading ? (
-                    <Loading />
-                  ) : (
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (!requested) {
-                          setRequested(true);
-                        } else {
-                          props.handleSubmit();
-                        }
-                      }}
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        alignSelf: "center",
-                        marginBottom: 20,
-                        backgroundColor: Colors.darkByzantium,
-                        padding: 10,
-                        borderRadius: 10,
-                        width: "50%",
-                      }}
-                    >
-                      {/* Options */}
-                      {requested ? (
-                        <Feather
-                          name="help-circle"
-                          size={20}
-                          color={Colors.eggshell}
-                        />
-                      ) : null}
-                      <Text
-                        style={{
-                          color: Colors.eggshell,
-                          fontSize: 20,
-                          fontWeight: "bold",
-                          marginHorizontal: 10,
-                          textAlign: "center",
-                          textAlignVertical: "center",
-                        }}
-                      >
-                        {requested ? "Request Help" : "Need Help?"}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              )}
-            </Formik>
           )}
 
           {/* Divider */}
@@ -319,39 +393,40 @@ const Person = ({ route, navigation }) => {
           </View>
 
           {/* Stats */}
-          <View
-            style={{
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              // marginHorizontal: 10,
-              marginVertical: 20,
-            }}
-          >
-            {/* Stats */}
-            <Text
-              style={{
-                color: "#fff",
-                textAlign: "center",
-                fontSize: 25,
-                fontWeight: "bold",
-              }}
-            >
-              Stats
-            </Text>
-            {/* Stats  */}
+          {person.isTF ? (
             <View
               style={{
-                marginTop: 10,
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                // marginHorizontal: 10,
+                marginVertical: 20,
               }}
             >
-              <Text style={{ color: "#fff", fontSize: 18 }}>
-                Total Helped: {person.totalHelped}
+              {/* Stats */}
+              <Text
+                style={{
+                  color: "#fff",
+                  textAlign: "center",
+                  fontSize: 25,
+                  fontWeight: "bold",
+                }}
+              >
+                Stats
               </Text>
-            </View>
+              {/* Stats  */}
+              <View
+                style={{
+                  marginTop: 10,
+                }}
+              >
+                <Text style={{ color: "#fff", fontSize: 18 }}>
+                  Total Helped: {person.totalHelped}
+                </Text>
+              </View>
 
-            {/* Rating */}
-            {/* <View
+              {/* Rating */}
+              {/* <View
               style={{
                 flexDirection: "row",
                 alignItems: "center",
@@ -361,7 +436,8 @@ const Person = ({ route, navigation }) => {
             >
               <StarRating rating={4} />
             </View> */}
-          </View>
+            </View>
+          ) : null}
         </View>
 
         {/* Close */}

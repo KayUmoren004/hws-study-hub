@@ -11,19 +11,23 @@ import {
 } from "react-native";
 import Delimitated from "./Tag/Delimitated";
 
-const TFView = ({ TFs, navigation }) => {
+const StudentView = ({ Student, navigation, data }) => {
   return (
     <View
-      onPress={() => navigation.navigate("Person", { person: TFs })}
+      onPress={() =>
+        navigation.navigate("Person", { person: Student, data: data })
+      }
       style={styles.container}
     >
       {/* Left */}
       <TouchableOpacity
-        onPress={() => navigation.navigate("Person", { person: TFs })}
+        onPress={() =>
+          navigation.navigate("Person", { person: Student, data: data })
+        }
       >
         {/* Profile Picture */}
         <Image
-          source={{ uri: TFs.profilePhotoUrl }}
+          source={{ uri: Student.profilePhotoUrl }}
           style={{
             width: 90,
             height: 90,
@@ -40,7 +44,9 @@ const TFView = ({ TFs, navigation }) => {
       >
         {/* Top */}
         <TouchableOpacity
-          onPress={() => navigation.navigate("Person", { person: TFs })}
+          onPress={() =>
+            navigation.navigate("Person", { person: Student, data: data })
+          }
         >
           {/* Name */}
           <Text
@@ -51,21 +57,20 @@ const TFView = ({ TFs, navigation }) => {
               fontSize: 20,
             }}
           >
-            {TFs.name}
+            {Student.name}
           </Text>
         </TouchableOpacity>
         {/* Bottom */}
-
         {/* Tags */}
-
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
           <View
             style={{
+              flex: 1,
               flexDirection: "row",
-              paddingRight: 100,
+              marginRight: 100,
             }}
           >
-            {TFs.tags.map((tag, index) => {
+            {Student.tags.map((tag, index) => {
               return <Delimitated key={index} tag={tag} />;
             })}
           </View>
@@ -75,7 +80,7 @@ const TFView = ({ TFs, navigation }) => {
   );
 };
 
-export default TFView;
+export default StudentView;
 
 const styles = StyleSheet.create({
   container: {

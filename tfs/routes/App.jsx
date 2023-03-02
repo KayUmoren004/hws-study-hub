@@ -5,23 +5,67 @@ import Tags from "../../shared/src/screens/app/Tags";
 import Settings from "../../shared/src/screens/app/Settings";
 import Notifications from "../../shared/src/screens/app/Notifications";
 import Chats from "../../shared/src/components/app/chat/Chats";
+import Message from "../../shared/src/components/app/chat/components/Chat";
+import Person from "../../shared/src/components/app/profile/Person";
 
 const App = ({ navigation }) => {
   // Nav
   const Stack = createNativeStackNavigator();
 
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerShown: false,
-      }}
-      initialRouteName="Bottom"
-    >
-      <Stack.Screen name="Bottom" component={Bottom} />
-      <Stack.Screen name="Tags" component={Tags} />
-      <Stack.Screen name="Settings" component={Settings} />
-      <Stack.Screen name="Notifications" component={Notifications} />
-      <Stack.Screen name="Messages" component={Chats} />
+    <Stack.Navigator initialRouteName="Bottom">
+      <Stack.Screen
+        name="Bottom"
+        component={Bottom}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Tags"
+        component={Tags}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={Settings}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Notifications"
+        component={Notifications}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Messages"
+        component={Chats}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Message"
+        component={Message}
+        options={
+          {
+            // headerShown: false,
+          }
+        }
+      />
+      <Stack.Screen
+        name="Person"
+        component={Person}
+        options={{
+          headerShown: false,
+          presentation: "modal",
+        }}
+      />
     </Stack.Navigator>
   );
 };

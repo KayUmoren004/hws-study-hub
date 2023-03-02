@@ -163,28 +163,32 @@ const Bottom = ({ navigation }) => {
 
   const [requestForHelp, setRequestForHelp] = useState(null);
 
-  // Listen for changes in "requestForHelp" collection in firestore and get its length
+  // Listen for changes in "requestForHelp" collection in firestore where tfUID === User.uid and get its length
   useEffect(() => {
     const unsubscribe = onSnapshot(
       collection(db, "requestForHelp"),
-      (query) => {
-        setRequestForHelp(query.docs.length);
+      (querySnapshot) => {
+        let counter = 0;
+        querySnapshot.forEach((doc) => {
+          if (doc.data().tfUID === User.uid) {
+            counter++;
+          }
+        });
+        setRequestForHelp(counter);
       }
     );
-
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
-
   return (
     <Tab.Navigator screenOptions={screenOptions}>
       <Tab.Screen
         name={`Hello, ${name}`}
         component={Home}
         options={options(
-          ["", "plus"],
-          () => {},
+          ["plus", "filter"],
           () => navigation.navigate("Tags"),
-          [0, 30],
+          () => {},
+          [25, 25],
           true,
           40,
           Colors.white,

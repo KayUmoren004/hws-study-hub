@@ -461,6 +461,8 @@ const App = {
             requestor: user,
             tf: tf.data(),
             createdAt: serverTimestamp(),
+            status: "open",
+            sharedUID: App.createSharedUID(tfUID, user.uid),
           }
         );
 
@@ -484,9 +486,71 @@ const App = {
   },
 };
 
+const Messages = {
+  // Send a message
+  sendMessage: async (messages, name) => {
+    messages.forEach(async (item) => {
+      try {
+        const message = {
+          message: item.message,
+          timeStamp: serverTimestamp(),
+          user: item.user,
+          chatRoomId: item.chatRoomId,
+        };
+
+        const massageRef = dbRef(realtime, "messages/" + message.chatRoomId);
+
+        await push(massageRef, message);
+      } catch (err) {
+        console.log("Error @Firebase.sendMessage: ", err.message);
+      }
+    });
+  },
+
+  // Parse messages
+  parseMessages: (message) => {
+    const { user, message: text, timeStamp, chatRoomId } = message.val();
+    const { key: _id } = message;
+    const createdAt = new Date(timeStamp);
+
+    return {
+      _id,
+      createdAt,
+      text,
+      user,
+      chatRoomId,
+    };
+  },
+
+  // Get messages
+  getMessages: async (callback, chatRoomId) => {
+    try {
+      const messageRef = dbRef(realtime, "messages/" + chatRoomId);
+
+      onChildAdded(messageRef, (snapshot) =>
+        callback(Messages.parseMessages(snapshot))
+      );
+    } catch (err) {
+      console.log("Error @Firebase.getMessages: ", err.message);
+    }
+  },
+
+  // Off messages
+  offMessages: async (chatRoomId) => {
+    try {
+      const messageRef = dbRef(realtime, "messages/" + chatRoomId);
+
+      off(messageRef);
+    } catch (err) {
+      console.log("Error @Firebase.offMessages: ", err.message);
+    }
+  },
+};
+
 const Firebase = {
   Auth,
   App,
+  Messages,
 };
 
 export default Firebase;

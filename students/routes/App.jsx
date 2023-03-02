@@ -11,6 +11,7 @@ import { Button } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Person from "../../shared/src/components/app/profile/Person";
 
+import Message from "../../shared/src/components/app/chat/components/Chat";
 const App = () => {
   // Nav
   const Stack = createNativeStackNavigator();
@@ -94,6 +95,15 @@ const App = () => {
           headerShown: false,
           presentation: "modal",
         }}
+      />
+      <Stack.Screen
+        name="Message"
+        component={Message}
+        options={
+          {
+            // headerShown: false,
+          }
+        }
       />
     </Stack.Navigator>
   );

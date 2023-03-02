@@ -18,6 +18,7 @@ const Colors = {
   bottleGreen: "#006957",
   violet: "#442463",
   lavenderWeb: "#d7dae5",
+  yellow: "#f2c94cff",
 };
 
 export default Colors;

@@ -63,7 +63,7 @@ const Header = ({ navigation, person }) => {
             }}
           >
             <Image
-              source={require("../../../../../assets/icon.png")}
+              source={require("../../../../../../assets/icon.png")}
               style={{
                 width: 50,
                 height: 50,

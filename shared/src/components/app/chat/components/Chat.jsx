@@ -25,23 +25,28 @@ import {
 } from "react-native-safe-area-context";
 import { Divider } from "react-native-paper";
 import Header from "./Header";
-import { UserContext } from "../../../../../shared/src/helpers/helpers/UserContext";
-import { FirebaseContext } from "../../../../../shared/src/helpers/helpers/FirebaseContext";
+import { UserContext } from "../../../../helpers/UserContext";
+import { FirebaseContext } from "../../../../helpers/FirebaseContext";
 
-const Chat = ({ id, navigation }) => {
+const Chat = ({ id, navigation, route }) => {
   const [messages, setMessages] = useState([]);
   const insets = useSafeAreaInsets();
+
+  // Params
+  const { person } = route.params;
 
   // Context
   const [User] = useContext(UserContext);
   const Firebase = useContext(FirebaseContext);
+
+  // console.log(whereFrom);
 
   // TODO: Get user you are texting
 
   // use effect to change the header
   useEffect(() => {
     navigation.setOptions({
-      header: () => <Header navigation={navigation} person={User} />,
+      header: () => <Header navigation={navigation} person={person} />,
     });
   }, [navigation]);
 
@@ -127,7 +132,7 @@ const Chat = ({ id, navigation }) => {
   // Get Messages and listen for new messages
   useEffect(() => {
     try {
-      Firebase.getMessages((message) =>
+      Firebase.Messages.getMessages((message) =>
         setMessages((previousMessages) =>
           GiftedChat.append(previousMessages, message)
         )

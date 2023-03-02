@@ -10,7 +10,7 @@ const Item = ({ navigation, data }) => {
 
   return (
     <TouchableOpacity
-      onPress={() => navigation.navigate("Messages", { id: data.id })}
+      onPress={() => navigation.navigate("Message", { id: data.id })}
       style={[
         styles.container,
         {

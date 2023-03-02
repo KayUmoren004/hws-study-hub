@@ -1,7 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 // Dependencies
-import { StyleSheet, Text, View } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Modal,
+} from "react-native";
 
 // Firebase
 import firebase from "firebase/compat/app";
@@ -24,38 +31,209 @@ import {
   addDoc,
 } from "firebase/firestore";
 import FirebaseConfig from "../../shared/src/helpers/config/FirebaseConfig";
-
+import { UserContext } from "../../shared/src/helpers/UserContext";
+import { Feather } from "@expo/vector-icons";
+import StudentView from "../../shared/src/components/app/StudentView";
+import Colors from "../../shared/src/utils/Colors";
+import RNPicker from "../../shared/src/components/app/RNPicker";
 const app = initializeApp(FirebaseConfig);
 const db = getFirestore(app);
 
-const Home = () => {
-  // State
-  const [requestForHelp, setRequestForHelp] = useState(null);
+const s = ["Open", "Pending", "In Progress", "Completed"];
 
-  // Listen for changes in "requestForHelp" collection in firestore
+const Home = ({ navigation }) => {
+  // State
+  const [requestForHelp, setRequestForHelp] = useState({
+    open: null,
+    pending: null,
+    inProgress: null,
+    completed: null,
+  });
+  const [data, setData] = useState(null);
+  const [status, setStatus] = useState("Open");
+  const [pick, setPick] = useState(s[0]);
+  const [pickerSeen, setPickerSeen] = useState(false);
+  // Context
+  const [User] = useContext(UserContext);
+
+  // Listen for changes in "requestForHelp" collection in firestore where tfUID === User.uid
   useEffect(() => {
-    try {
-      const unsubscribe = onSnapshot(
-        collection(db, "requestForHelp"),
-        (querySnapshot) => {
-          const requestForHelp = [];
-          querySnapshot.forEach((doc) => {
-            // Convert timestamp to date
-            const createdAt = doc.data().createdAt.toDate();
-            requestForHelp.push({ ...doc.data(), createdAt });
-          });
-          setRequestForHelp(requestForHelp);
-        }
-      );
-      return unsubscribe;
-    } catch (error) {
-      console.log("Error @ Home.jsx: ", error);
-    }
+    const unsubscribe = onSnapshot(
+      collection(db, "requestForHelp"),
+      (querySnapshot) => {
+        let openArr = [];
+        let pendingArr = [];
+        let inProgressArr = [];
+        let completedArr = [];
+        querySnapshot.forEach((doc) => {
+          if (doc.data().tfUID === User.uid) {
+            if (doc.data().status === "open") {
+              openArr.push(doc.data());
+            } else if (doc.data().status === "pending") {
+              pendingArr.push(doc.data());
+            } else if (doc.data().status === "in progress") {
+              inProgressArr.push(doc.data());
+            } else if (doc.data().status === "completed") {
+              completedArr.push(doc.data());
+            }
+          }
+        });
+        setRequestForHelp({
+          open: openArr,
+          pending: pendingArr,
+          inProgress: inProgressArr,
+          completed: completedArr,
+        });
+        setData(openArr);
+      }
+    );
+    return unsubscribe;
   }, []);
+
+  // Add Functionality to header buttons on mount
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View
+          style={{
+            flexDirection: "row",
+          }}
+        >
+          <TouchableOpacity
+            style={{ marginRight: 20 }}
+            onPress={() => navigation.navigate("Tags")}
+          >
+            <Feather name="plus" size={25} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ marginRight: 20 }}
+            onPress={() => {
+              setPickerSeen(true);
+            }}
+          >
+            <Feather name="filter" size={25} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, []);
+
+  // Sort the array by status
+  const sort = (pick) => {
+    setPickerSeen(false);
+    if (requestForHelp) {
+      // Based on pick, set data to the corresponding array
+      if (pick === "Open") {
+        setData(requestForHelp.open);
+      }
+      if (pick === "Pending") {
+        setData(requestForHelp.pending);
+      }
+      if (pick === "In Progress") {
+        setData(requestForHelp.inProgress);
+      }
+      if (pick === "Completed") {
+        setData(requestForHelp.completed);
+      }
+
+      // Set status to the corresponding status
+      if (pick === "Open") {
+        setStatus("Open");
+      }
+      if (pick === "Pending") {
+        setStatus("Pending");
+      }
+      if (pick === "In Progress") {
+        setStatus("In Progress");
+      }
+      if (pick === "Completed") {
+        setStatus("Completed");
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={{ color: "#fff" }}>TF Home</Text>
+      {/* Header */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: 10,
+          // borderTopWidth: 1,
+          // borderBottomWidth: 1,
+          borderColor: "#fff",
+        }}
+      >
+        {/* Status */}
+        <Text
+          style={{
+            color: "#fff",
+            fontSize: 20,
+            fontWeight: "200",
+          }}
+        >
+          Status:{" "}
+          <Text
+            style={{
+              color:
+                status === "Open"
+                  ? Colors.lavenderBlue
+                  : status === "Pending"
+                  ? Colors.yellow
+                  : status === "In Progress"
+                  ? Colors.orange
+                  : status === "Completed"
+                  ? Colors.bottleGreen
+                  : "#fff",
+              fontSize: 20,
+              fontWeight: "200",
+            }}
+          >
+            {status}
+          </Text>
+        </Text>
+      </View>
+      {/* Body */}
+      <View style={{ flex: 1 }}>
+        {/* Picker */}
+        <Modal
+          animationType="slide"
+          visible={pickerSeen}
+          transparent={true}
+          onRequestClose={() => {
+            Alert.alert("Modal has been closed.");
+            setPickerSeen(!pickerSeen);
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <RNPicker
+              selectedValue={pick}
+              setPick={setPick}
+              onClose={() => {
+                sort(pick);
+              }}
+            />
+          </View>
+        </Modal>
+        <FlatList
+          data={data}
+          renderItem={({ item }) => (
+            <StudentView
+              Student={item.requestor}
+              navigation={navigation}
+              data={item}
+            />
+          )}
+        />
+      </View>
     </View>
   );
 };
@@ -66,7 +244,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
-    alignItems: "center",
-    justifyContent: "center",
+    padding: 4,
+    // alignItems: "center",
+    // justifyContent: "center",
   },
 });
