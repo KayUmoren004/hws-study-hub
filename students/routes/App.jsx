@@ -5,11 +5,12 @@ import Tags from "../../shared/src/screens/app/Tags";
 import Settings from "../../shared/src/screens/app/Settings";
 import Notifications from "../../shared/src/screens/app/Notifications";
 import Chats from "../../shared/src/components/app/chat/Chats";
-import Filter from "../screens/Filter";
+// import Filter from "../screens/Filter";
 import { Feather } from "@expo/vector-icons";
 import { Button } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Person from "../../shared/src/components/app/profile/Person";
+import CPerson from "../../shared/src/components/app/chat/components/CPerson";
 
 import Message from "../../shared/src/components/app/chat/components/Chat";
 const App = () => {
@@ -63,7 +64,7 @@ const App = () => {
           headerShown: false,
         }}
       />
-      <Stack.Screen
+      {/* <Stack.Screen
         name="Filter"
         component={Filter}
         options={{
@@ -87,7 +88,7 @@ const App = () => {
           ),
           headerRight: () => <Button title="Reset" />,
         }}
-      />
+      /> */}
       <Stack.Screen
         name="Person"
         component={Person}
@@ -104,6 +105,13 @@ const App = () => {
             // headerShown: false,
           }
         }
+      />
+      <Stack.Screen
+        name="Chat Person"
+        component={CPerson}
+        options={{
+          headerShown: false,
+        }}
       />
     </Stack.Navigator>
   );

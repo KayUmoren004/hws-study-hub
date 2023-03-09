@@ -11,25 +11,45 @@ import {
   View,
   SafeAreaView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Divider } from "react-native-paper";
 import { UserContext } from "../../helpers/UserContext";
 import Colors from "../../utils/Colors";
 import Delimitated from "../../../../shared/src/components/app/Tag/Delimitated";
+import { FirebaseContext } from "../../helpers/FirebaseContext";
 
-const courses = [
-  "Computer Science",
-  "Mathematics",
-  "Physics",
-  "Chemistry",
-  "Biology",
-  "Economics",
-  "Psychology",
-];
+// Loading Component
+const Loading = () => {
+  return (
+    <View>
+      <ActivityIndicator size={"large"} color={Colors.languidLavender} />
+    </View>
+  );
+};
 
 const Profile = ({ navigation }) => {
-  const [User] = useContext(UserContext);
+  const [User, setUser] = useContext(UserContext);
+  const Firebase = useContext(FirebaseContext);
+
+  // State
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  // Sign out
+  const signOut = async () => {
+    setIsLoading(true);
+    try {
+      const loggedOut = await Firebase.Auth.signOut();
+      if (loggedOut) {
+        setUser((state) => ({ ...state, isLoggedIn: false }));
+      }
+    } catch (err) {
+      console.log("Error @signOut: ", err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Load image on mount
   const [image, setImage] = React.useState(null);
@@ -209,7 +229,10 @@ const Profile = ({ navigation }) => {
               marginVertical: 20,
             }}
           >
-            <Button title="Log out" onPress={() => console.log("Log Out")} />
+            {isLoading && <Loading />}
+            {!isLoading && (
+              <Button title="Sign Out" onPress={() => signOut()} />
+            )}
           </View>
         </View>
       </View>

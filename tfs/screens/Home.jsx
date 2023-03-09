@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
 
 // Dependencies
 import {
@@ -35,7 +35,7 @@ import { UserContext } from "../../shared/src/helpers/UserContext";
 import { Feather } from "@expo/vector-icons";
 import StudentView from "../../shared/src/components/app/StudentView";
 import Colors from "../../shared/src/utils/Colors";
-import RNPicker from "../../shared/src/components/app/RNPicker";
+import Status from "../../shared/src/components/app/picker/Status";
 const app = initializeApp(FirebaseConfig);
 const db = getFirestore(app);
 
@@ -67,13 +67,13 @@ const Home = ({ navigation }) => {
         let completedArr = [];
         querySnapshot.forEach((doc) => {
           if (doc.data().tfUID === User.uid) {
-            if (doc.data().status === "open") {
+            if (doc.data().status === "Open") {
               openArr.push(doc.data());
-            } else if (doc.data().status === "pending") {
+            } else if (doc.data().status === "Pending") {
               pendingArr.push(doc.data());
-            } else if (doc.data().status === "in progress") {
+            } else if (doc.data().status === "In Progress") {
               inProgressArr.push(doc.data());
-            } else if (doc.data().status === "completed") {
+            } else if (doc.data().status === "Completed") {
               completedArr.push(doc.data());
             }
           }
@@ -91,7 +91,7 @@ const Home = ({ navigation }) => {
   }, []);
 
   // Add Functionality to header buttons on mount
-  useEffect(() => {
+  useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
         <View
@@ -214,12 +214,13 @@ const Home = ({ navigation }) => {
               alignItems: "center",
             }}
           >
-            <RNPicker
+            <Status
               selectedValue={pick}
               setPick={setPick}
               onClose={() => {
                 sort(pick);
               }}
+              status={s}
             />
           </View>
         </Modal>

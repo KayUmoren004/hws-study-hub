@@ -4,9 +4,9 @@ import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 
 import { Picker } from "@react-native-picker/picker";
-import Colors from "../../utils/Colors";
+import Colors from "../../../utils/Colors";
 
-const RNPicker = ({ selectedValue, setPick, onClose, onBlur }) => {
+const RNPicker = ({ selectedValue, setPick, onClose, onBlur, data }) => {
   return (
     <View
       style={{
@@ -32,10 +32,21 @@ const RNPicker = ({ selectedValue, setPick, onClose, onBlur }) => {
         onValueChange={(itemValue, itemIndex) => setPick(itemValue)}
         onBlur={onBlur}
       >
-        <Picker.Item label="Open" value="Open" />
-        <Picker.Item label="Pending" value="Pending" />
-        <Picker.Item label="In Progress" value="In Progress" />
-        <Picker.Item label="Completed" value="Completed" />
+        {/* {isTags ? (
+          tags.map((tag, idx) => (
+            <Picker.Item key={idx} label={tag} value={tag} />
+          ))
+        ) : (
+          <>
+            <Picker.Item label="Open" value="Open" />
+            <Picker.Item label="Pending" value="Pending" />
+            <Picker.Item label="In Progress" value="In Progress" />
+            <Picker.Item label="Completed" value="Completed" />
+          </>
+        )} */}
+        {data.map((item, idx) => (
+          <Picker.Item key={idx} label={item} value={item} />
+        ))}
       </Picker>
     </View>
   );

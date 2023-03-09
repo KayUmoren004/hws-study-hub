@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import Colors from "../../shared/src/utils/Colors";
 import { UserContext } from "../../shared/src/helpers/UserContext";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { TouchableOpacity, View } from "react-native";
 
 // Local Screens
@@ -15,6 +15,52 @@ import Profile from "../../shared/src/screens/app/Profile";
 import Tags from "../../shared/src/screens/app/Tags";
 import Notifications from "../../shared/src/screens/app/Notifications";
 import Settings from "../../shared/src/screens/app/Settings";
+
+// Firebase
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import "firebase/compat/firestore";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
+  getDoc,
+  deleteDoc,
+  getDocs,
+  onSnapshot,
+  arrayRemove,
+  serverTimestamp,
+  arrayUnion,
+  addDoc,
+} from "firebase/firestore";
+import {
+  getDatabase,
+  child,
+  get,
+  onValue,
+  ref as dbRef,
+  query,
+  push,
+  onChildAdded,
+  off,
+  set,
+  onDisconnect,
+  remove,
+  serverTimestamp as dbServerTimestamp,
+  orderByChild,
+  limitToLast,
+  update,
+} from "firebase/database";
+import FirebaseConfig from "../../shared/src/helpers/config/FirebaseConfig";
+
+const app = initializeApp(FirebaseConfig);
+const db = getFirestore(app);
+const realtime = getDatabase(app);
+
+let sName;
 
 // Screen Options
 const screenOptions = ({ route }) => ({
@@ -62,13 +108,17 @@ const options = (
   onPress,
   onPressSecond,
   rightIconSize = 30,
-  shown = true
+  shown = true,
+  fontSize = 40,
+  fontColor = Colors.white,
+  counter = null
 ) => ({
   headerShown: shown,
+  tabBarBadge: counter === null || counter === 0 ? null : counter,
   headerTitleStyle: {
-    fontSize: 40,
+    fontSize: fontSize,
     fontWeight: "bold",
-    color: Colors.white,
+    color: fontColor,
   },
   headerStyle: {
     backgroundColor: Colors.black,
@@ -126,9 +176,46 @@ const Bottom = ({ navigation }) => {
   // Name
   const name = User.name.slice(0, User.name.indexOf(" "));
 
+  // on mount set sName to name
+  if (!sName) {
+    sName = name;
+  }
+
+  const [unread, setUnread] = useState(0);
+
+  // Listen for unread messages in users/user.uid/
+  useEffect(() => {
+    const unsubscribe = onValue(
+      dbRef(realtime, `users/${User.uid}`),
+      (snapshot) => {
+        const data = snapshot.val();
+        console.log("Data: ", data);
+        const d = [];
+        for (const key in data) {
+          if (data[key].unread) {
+            const z = data[key].unread;
+            for (const k in z) {
+              if (z[k]) {
+                d.push(z[k]);
+              }
+            }
+          }
+        }
+
+        if (d.length > 0) {
+          setUnread(d.length);
+        } else {
+          setUnread(0);
+        }
+      }
+    );
+
+    return unsubscribe;
+  }, []);
+
   return (
     <Tab.Navigator screenOptions={screenOptions}>
-      <Tab.Screen
+      {/* <Tab.Screen
         name={`Hello, ${name}`}
         component={Home}
         options={options(
@@ -137,12 +224,12 @@ const Bottom = ({ navigation }) => {
           () => navigation.navigate("Tags"),
           [0, 30]
         )}
-      />
+      /> */}
       <Tab.Screen
-        name="Request Help"
+        name={`Hello, ${name}`}
         component={Help}
         options={options(
-          ["", "filter"],
+          ["plus", "filter"],
           () => {},
           () => {},
           [25, 25]
@@ -155,7 +242,11 @@ const Bottom = ({ navigation }) => {
           ["bell", "search"],
           () => navigation.navigate("Notifications"),
           () => navigation.navigate("Search"),
-          [25, 25]
+          [25, 25],
+          true,
+          40,
+          Colors.white,
+          unread
         )}
       />
       <Tab.Screen

@@ -309,6 +309,7 @@ const Person = ({ route, navigation }) => {
                   navigation.goBack();
                   navigation.navigate("Message", {
                     person,
+                    data,
                   });
                   // Close modal
                   // navigation.goBack();

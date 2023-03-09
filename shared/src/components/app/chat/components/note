@@ -159,3 +159,25 @@ style={{
   </View>
 </View>
 </View>
+
+==========================================================
+
+unreadMessages.length <= 0 ? (
+              <Text
+                style={{
+                  color: "#fff",
+                  opacity: 0.5,
+                }}
+              >
+                {data.message}
+              </Text>
+            ) : (
+              <Text
+                style={{
+                  color: "#fff",
+                  opacity: 1,
+                }}
+              >
+                {data.message}
+              </Text>
+            )

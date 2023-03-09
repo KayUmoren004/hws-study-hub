@@ -1,7 +1,16 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
 
 // Dependencies
-import { FlatList, SafeAreaView, StyleSheet, Text, View } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Modal,
+  SafeAreaView,
+  Button,
+} from "react-native";
 
 import { UserContext } from "../../shared/src/helpers/UserContext";
 
@@ -56,6 +65,8 @@ import FirebaseConfig from "../../shared/src/helpers/config/FirebaseConfig";
 import RightIcon from "../../shared/src/components/app/RightIcon";
 import Colors from "../../shared/src/utils/Colors";
 import TFView from "../../shared/src/components/app/TFView";
+import Tags from "../../shared/src/components/app/picker/Tags";
+import { Feather } from "@expo/vector-icons";
 
 const app = initializeApp(FirebaseConfig);
 const auth = getAuth(app);
@@ -69,6 +80,8 @@ const Help = ({ navigation }) => {
   // State
   const [OnlineTFs, setOnlineTFs] = useState(null);
   const [filteredTFs, setFilteredTFs] = useState(null);
+  const [pickerState, setPickerState] = useState(false);
+  const [pick, setPick] = useState(User.tags[0]);
 
   // Get all online TFs
   const getOnlineTFs = async () => {
@@ -93,8 +106,6 @@ const Help = ({ navigation }) => {
     }
   };
 
-  console.log("Online TFs: ", OnlineTFs);
-
   // Find user in firestore given uid
   const findUser = async (uid) => {
     try {
@@ -115,33 +126,57 @@ const Help = ({ navigation }) => {
     getOnlineTFs();
   }, []);
 
-  console.log("Filtered TFs: ", filteredTFs);
-
   // Filter navigation
-  useEffect(() => {
+  useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: true,
       headerRight: () => (
-        <RightIcon
-          name="filter"
-          onPress={() =>
-            navigation.navigate("Filter", {
-              setFilteredTFs: setFilteredTFs,
-            })
-          }
-          size={24}
-          color={Colors.white}
-        />
+        <View
+          style={{
+            flexDirection: "row",
+          }}
+        >
+          <TouchableOpacity
+            style={{ marginRight: 20 }}
+            onPress={() => navigation.navigate("Tags")}
+          >
+            <Feather name="plus" size={25} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{ marginRight: 20 }}
+            onPress={() => {
+              setPickerState(true);
+            }}
+          >
+            <Feather name="filter" size={25} color="#fff" />
+          </TouchableOpacity>
+        </View>
       ),
     });
   }, [navigation]);
 
   // Filter by tag
+  const filterByTag = (tag) => {
+    // Check if tag is "All"
+    if (tag === "All") {
+      setFilteredTFs(null);
+    } else {
+      // Filter by tag
+      const filtered = OnlineTFs.filter((user) => user.tags.includes(tag));
+      setFilteredTFs(filtered);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <Text
           style={{
             color: Colors.bottleGreen,
@@ -153,6 +188,15 @@ const Help = ({ navigation }) => {
         >
           Online Now
         </Text>
+        {filteredTFs && (
+          <Button
+            title="Clear Filters"
+            onPress={() => {
+              setFilteredTFs(null);
+              setPickerState(false);
+            }}
+          />
+        )}
       </View>
       {/* Body */}
       <View
@@ -160,13 +204,65 @@ const Help = ({ navigation }) => {
           flex: 1,
         }}
       >
-        <FlatList
-          data={filteredTFs ? filteredTFs : OnlineTFs}
-          renderItem={({ item }) => (
-            <TFView TFs={item} navigation={navigation} />
-          )}
-          keyExtractor={(item) => item.uid}
-        />
+        {/* Picker */}
+        <Modal
+          animationType="slide"
+          visible={pickerState}
+          transparent={true}
+          onRequestClose={() => {
+            Alert.alert("Modal has been closed.");
+            setPickerSeen(!pickerState);
+          }}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Tags
+              selectedValue={pick}
+              setPick={setPick}
+              tags={User.tags}
+              onClose={() => {
+                setPickerState(false);
+                filterByTag(pick);
+              }}
+              onBlur={() => {
+                setPickerState(false);
+                filterByTag(pick);
+              }}
+            />
+          </View>
+        </Modal>
+        {filteredTFs?.length == 0 && pickerState == false ? (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 24,
+                fontWeight: "bold",
+              }}
+            >
+              No {pick} TF is online
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredTFs ? filteredTFs : OnlineTFs}
+            renderItem={({ item }) => (
+              <TFView TFs={item} navigation={navigation} />
+            )}
+            keyExtractor={(item) => item.uid}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

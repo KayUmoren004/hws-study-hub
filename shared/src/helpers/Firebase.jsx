@@ -30,6 +30,7 @@ import {
   serverTimestamp,
   arrayUnion,
   addDoc,
+  limitToLast,
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
@@ -45,6 +46,9 @@ import {
   set,
   onDisconnect,
   remove,
+  serverTimestamp as dbServerTimestamp,
+  orderByChild,
+  update,
 } from "firebase/database";
 
 // Config
@@ -452,19 +456,19 @@ const App = {
         // Get TF User
         const tf = await getDoc(doc(db, "users", tfUID));
 
-        await setDoc(
-          doc(db, "requestForHelp", App.createSharedUID(tfUID, user.uid)),
-          {
-            title,
-            description,
-            tfUID: tfUID,
-            requestor: user,
-            tf: tf.data(),
-            createdAt: serverTimestamp(),
-            status: "open",
-            sharedUID: App.createSharedUID(tfUID, user.uid),
-          }
-        );
+        // Shared UID
+        const sharedUID = App.createSharedUID(tfUID, user.uid);
+
+        await setDoc(doc(db, "requestForHelp", sharedUID), {
+          title,
+          description,
+          tfUID: tfUID,
+          requestor: user,
+          tf: tf.data(),
+          createdAt: serverTimestamp(),
+          status: "open",
+          sharedUID: sharedUID,
+        });
 
         return true;
       }
@@ -487,20 +491,90 @@ const App = {
 };
 
 const Messages = {
+  // Create Unread Message
+  createUnreadMessage: async (unread) => {
+    try {
+      // Get current value of unread object
+      const unreadPreRef = dbRef(
+        realtime,
+        "users/" + `${unread.receiverUID}/` + unread.chatRoomId
+      );
+      const unreadPreSnap = await get(unreadPreRef);
+      const unreadPre = unreadPreSnap.val();
+      let u = [];
+
+      console.log("unreadPre: ", unreadPre);
+
+      // Push elements unreadPre to u
+      if (unreadPre) {
+        unreadPre.unread.forEach((item) => {
+          u.push(item);
+        });
+      } else {
+        u = [];
+      }
+
+      // Push unread.key to u
+      u.push(unread.key);
+
+      // console.log("u: ", u);
+
+      // Create unread object
+      const obj = {
+        receiverUID: unread.receiverUID,
+        unread: u,
+      };
+
+      // Handle read status
+      const unreadRef = dbRef(
+        realtime,
+        "users/" + `${obj.receiverUID}/` + unread.chatRoomId
+      );
+      // Update unread object
+      await set(unreadRef, obj);
+    } catch (err) {
+      console.log("Error @Messages.createUnreadMessage: ", err.message);
+    }
+  },
+
   // Send a message
-  sendMessage: async (messages, name) => {
+  sendMessage: async (messages) => {
     messages.forEach(async (item) => {
       try {
+        // Deconstruct chatRoomId
+        const [receiverUID, senderUID] = item.chatRoomId.split("-");
+
+        // Create message object
         const message = {
           message: item.message,
-          timeStamp: serverTimestamp(),
+          timeStamp: dbServerTimestamp(),
           user: item.user,
           chatRoomId: item.chatRoomId,
+          read: false,
+          senderUID: item.user._id === senderUID ? senderUID : receiverUID,
+          receiverUID: item.user._id === senderUID ? receiverUID : senderUID,
         };
 
         const massageRef = dbRef(realtime, "messages/" + message.chatRoomId);
 
-        await push(massageRef, message);
+        // Get Document key of the pushed message
+        const key = await push(massageRef, message).key;
+
+        // update message just sent with key
+        await update(
+          dbRef(realtime, "messages/" + message.chatRoomId + "/" + key),
+          { key: key }
+        );
+
+        // Create unread object
+        const unread = {
+          receiverUID: message.receiverUID,
+          key: key,
+          chatRoomId: message.chatRoomId,
+        };
+
+        // Create unread message
+        await Messages.createUnreadMessage(unread);
       } catch (err) {
         console.log("Error @Firebase.sendMessage: ", err.message);
       }
@@ -509,9 +583,10 @@ const Messages = {
 
   // Parse messages
   parseMessages: (message) => {
-    const { user, message: text, timeStamp, chatRoomId } = message.val();
+    const { user, message: text, timeStamp, chatRoomId, read } = message.val();
     const { key: _id } = message;
     const createdAt = new Date(timeStamp);
+    const isRead = read;
 
     return {
       _id,
@@ -519,6 +594,7 @@ const Messages = {
       text,
       user,
       chatRoomId,
+      isRead,
     };
   },
 
@@ -545,6 +621,113 @@ const Messages = {
       console.log("Error @Firebase.offMessages: ", err.message);
     }
   },
+
+  // Deconstruct Shared UID
+  deconstructSharedUID: (sharedUID) => {
+    var middle = sharedUID.indexOf("-");
+    var uid1 = sharedUID.substring(0, middle);
+    var uid2 = sharedUID.substring(middle + 1, sharedUID.length);
+
+    return {
+      uid1,
+      uid2,
+    };
+  },
+
+  // Get Last Message
+  getLastMessage: async (chatRoomId) => {
+    try {
+      const messagesRef = ref(getDatabase(), `messages/${chatRoomId}`);
+      const messagesSnapshot = await get(
+        orderByChild(messagesRef, "timeStamp"),
+        limitToLast(messagesRef, 1)
+      );
+
+      const messages = messagesSnapshot.val();
+
+      // Get the last (and only) message from the snapshot
+      const messageId = Object.keys(messages)[0];
+      const message = messages[messageId];
+
+      return message;
+    } catch (err) {
+      console.log("Error @Messages.getLastMessage: ", err.message);
+      return null;
+    }
+  },
+
+  // Get Chat Room
+  getChatRoom: async (partialUID) => {
+    try {
+      // Get all conversations
+      const conversations = await Messages.getConversations();
+
+      // Conversations that contain the partialUID
+      const filteredConversations = [];
+
+      var usr1, usr2;
+
+      // For each conversation, deconstruct the sharedUID and check if it contains the partialUID
+      for (let i = 0; i < conversations.length; i++) {
+        const { uid1, uid2 } = Messages.deconstructSharedUID(conversations[i]);
+
+        // Save the user data of uid1 and uid2
+        usr1 = await Auth.getUserData(uid1);
+        usr2 = await Auth.getUserData(uid2);
+
+        if (uid1 === partialUID || uid2 === partialUID) {
+          filteredConversations.push(conversations[i]);
+        }
+      }
+
+      // Find Current User
+      const currentUser = Firebase.Auth.getCurrentUser();
+
+      // Create a new array of conversations that contains the id: child.key, name: otherUser.name, message: lastMessage, time: lastMessage.timeStamp, profilePhotoURL: otherUser.profilePhotoUrl,
+      const conversationsWithUserData = await Promise.all(
+        filteredConversations.map(async (conversation) => {
+          const { uid1, uid2 } = Messages.deconstructSharedUID(conversation);
+
+          const otherUserData = currentUser.uid === uid1 ? usr2 : usr1;
+
+          const lastMessage = await Messages.getLastMessage(conversation.key);
+
+          return {
+            id: conversation.key,
+            name: otherUserData.name,
+            message: lastMessage.message,
+            time: new Date(lastMessage.timeStamp.toMillis()).toLocaleString(),
+            profilePhotoURL: otherUserData.profilePhotoUrl,
+          };
+        })
+      );
+
+      return conversationsWithUserData;
+    } catch (err) {
+      console.log("Error @Firebase.getChatRoom: ", err.message);
+      return null;
+    }
+  },
+
+  // Get all conversations from firebase realtime database. This function will return an array of Keys (sharedUIDs) of all conversations
+  getConversations: async () => {
+    try {
+      const conversationsRef = dbRef(realtime, "messages/");
+      const conversations = [];
+      onValue(conversationsRef, (snapshot) => {
+        snapshot.forEach((child) => {
+          const sUID = child.key;
+          conversations.push(sUID);
+          // conversations.push(child.key);
+        });
+      });
+
+      console.log("Messages: ", conversations);
+      return conversations;
+    } catch (err) {
+      console.log("Error @Firebase.getConversations: ", err.message);
+    }
+  },
 };
 
 const Firebase = {
@@ -554,3 +737,35 @@ const Firebase = {
 };
 
 export default Firebase;
+
+// const messagesRef = dbRef(realtime, "messages/");
+// const snapshot = await get(children(messagesRef));
+
+// const conversations = [];
+
+// snapshot.forEach((child) => {
+//   const { uid1, uid2 } = Messages.deconstructSharedUID(child.key);
+
+//   // Get user 1
+//   const user1 = Firebase.Auth.getUserData(uid1);
+
+//   // Get user 2
+//   const user2 = Firebase.Auth.getUserData(uid2);
+
+//   // Determine which user is the current user
+//   const currentUser = Firebase.Auth.getCurrentUser();
+//   const otherUser = currentUser.uid === uid1 ? user2 : user1;
+
+//   // Get last message
+//   const lastMessage = getDoc(doc(db, "messages", child.key, child.val().key));
+
+//   // Push to conversations
+//   conversations.push({
+//     id: child.key,
+//     name: otherUser.name,
+//     message: lastMessage,
+//     time: lastMessage.timeStamp,
+//     profilePhotoURL: otherUser.profilePhotoUrl,
+//     // unread:
+//   });
+// });

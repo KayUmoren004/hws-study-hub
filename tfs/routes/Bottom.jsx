@@ -35,9 +35,28 @@ import {
   arrayUnion,
   addDoc,
 } from "firebase/firestore";
+import {
+  getDatabase,
+  child,
+  get,
+  onValue,
+  ref as dbRef,
+  query,
+  push,
+  onChildAdded,
+  off,
+  set,
+  onDisconnect,
+  remove,
+  serverTimestamp as dbServerTimestamp,
+  orderByChild,
+  limitToLast,
+  update,
+} from "firebase/database";
 import FirebaseConfig from "../../shared/src/helpers/config/FirebaseConfig";
 
 const app = initializeApp(FirebaseConfig);
+const realtime = getDatabase(app);
 const db = getFirestore(app);
 
 let sName;
@@ -179,6 +198,28 @@ const Bottom = ({ navigation }) => {
     );
     return unsubscribe;
   }, []);
+
+  const [unread, setUnread] = useState(0);
+
+  // Listen for unread messages in users/user.uid/
+  useEffect(() => {
+    const unsubscribe = onValue(
+      dbRef(realtime, `users/${User.uid}`),
+      (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const d = Object.values(data);
+          // console.log("D: ", d.length);
+          setUnread(d.length);
+        } else {
+          setUnread(0);
+        }
+      }
+    );
+
+    return unsubscribe;
+  }, []);
+
   return (
     <Tab.Navigator screenOptions={screenOptions}>
       <Tab.Screen
@@ -212,7 +253,11 @@ const Bottom = ({ navigation }) => {
           ["bell", "search"],
           () => navigation.navigate("Notifications"),
           () => navigation.navigate("Search"),
-          [25, 25]
+          [25, 25],
+          true,
+          40,
+          Colors.white,
+          unread
         )}
       />
       <Tab.Screen

@@ -61,6 +61,7 @@ import "firebase/compat/auth";
 import "firebase/compat/firestore";
 import "firebase/compat/database";
 import FirebaseConfig from "../../../../shared/src/helpers/helpers/config/FirebaseConfig";
+import { UserContext } from "../../../helpers/UserContext";
 
 const app = initializeApp(FirebaseConfig);
 const db = getFirestore(app);
@@ -83,6 +84,7 @@ const Tag = ({ navigation }) => {
 
   // Context
   const Firebase = useContext(FirebaseContext);
+  const [User, setUser] = useContext(UserContext);
 
   // State
   const [listOfCourses, setListOfCourses] = useState([]);
@@ -143,10 +145,19 @@ const Tag = ({ navigation }) => {
       // Delete "default" tag
       await Firebase.deleteDefaultTag();
 
+      // sort newTags based on alphabetical order
+      newTags.sort();
+
       // Update tags
       await updateDoc(docRef, {
         tags: newTags,
       });
+
+      // Add Tags to User State
+      setUser((prevState) => ({
+        ...prevState,
+        tags: newTags,
+      }));
 
       // Clear Selected Tags
       setSelectedTags([]);

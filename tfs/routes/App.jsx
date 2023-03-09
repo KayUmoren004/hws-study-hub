@@ -7,6 +7,7 @@ import Notifications from "../../shared/src/screens/app/Notifications";
 import Chats from "../../shared/src/components/app/chat/Chats";
 import Message from "../../shared/src/components/app/chat/components/Chat";
 import Person from "../../shared/src/components/app/profile/Person";
+import CPerson from "../../shared/src/components/app/chat/components/CPerson";
 
 const App = ({ navigation }) => {
   // Nav
@@ -64,6 +65,19 @@ const App = ({ navigation }) => {
         options={{
           headerShown: false,
           presentation: "modal",
+        }}
+      />
+      <Stack.Screen
+        name="Chat Person"
+        component={CPerson}
+        options={{
+          // headerShown: false,
+          // Set header to transparent
+          headerTransparent: true,
+          headerTintColor: "#fff",
+          headerTitleStyle: {
+            color: "transparent",
+          },
         }}
       />
     </Stack.Navigator>

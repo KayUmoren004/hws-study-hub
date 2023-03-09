@@ -1,5 +1,5 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useLayoutEffect } from "react";
 
 // Dependencies
 import {
@@ -12,7 +12,74 @@ import {
 } from "react-native";
 import Colors from "../../../../utils/Colors";
 
+// Firebase
+import firebase from "firebase/compat/app";
+import "firebase/compat/auth";
+import "firebase/compat/firestore";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import {
+  getFirestore,
+  collection,
+  doc,
+  setDoc,
+  updateDoc,
+  getDoc,
+  deleteDoc,
+  getDocs,
+  onSnapshot,
+  arrayRemove,
+  serverTimestamp,
+  arrayUnion,
+  addDoc,
+} from "firebase/firestore";
+import {
+  getDatabase,
+  child,
+  get,
+  onValue,
+  ref as dbRef,
+  query,
+  push,
+  onChildAdded,
+  off,
+  set,
+  onDisconnect,
+  remove,
+  serverTimestamp as dbServerTimestamp,
+  orderByChild,
+  limitToLast,
+  update,
+} from "firebase/database";
+import FirebaseConfig from "../../../../helpers/config/FirebaseConfig";
+
+const app = initializeApp(FirebaseConfig);
+const db = getFirestore(app);
+const realtime = getDatabase(app);
+
 const Header = ({ navigation, person }) => {
+  // State
+  const [status, setStatus] = React.useState("");
+
+  // Listen for status of person
+  useLayoutEffect(() => {
+    // side effects
+    const unSub = onValue(dbRef(realtime, `online`), (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        if (data[person.uid]) {
+          setStatus("online");
+        } else {
+          setStatus("offline");
+        }
+      }
+    });
+
+    // cleanup
+    return () => {
+      unSub();
+    };
+  }, []);
+
   return (
     <SafeAreaView
       style={{
@@ -54,7 +121,7 @@ const Header = ({ navigation, person }) => {
             justifyContent: "center",
             alignItems: "center",
           }}
-          onPress={() => navigation.navigate("Person")}
+          onPress={() => navigation.navigate("Chat Person", { person: person })}
         >
           {/* Profile Photo */}
           <View
@@ -63,7 +130,11 @@ const Header = ({ navigation, person }) => {
             }}
           >
             <Image
-              source={require("../../../../../../assets/icon.png")}
+              source={
+                person.profilePhotoUrl === "default"
+                  ? require("../../../../../../assets/icon.png")
+                  : { uri: person.profilePhotoUrl }
+              }
               style={{
                 width: 50,
                 height: 50,
@@ -83,9 +154,14 @@ const Header = ({ navigation, person }) => {
               {person.name}
             </Text>
             <Text
-              style={{ color: Colors.bottleGreen, fontSize: 12, marginTop: 5 }}
+              style={{
+                color:
+                  status === "Online" ? Colors.bottleGreen : Colors.darkGray,
+                fontSize: 12,
+                marginTop: 5,
+              }}
             >
-              Online
+              {status}
             </Text>
           </View>
         </TouchableOpacity>

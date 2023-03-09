@@ -11,7 +11,7 @@ const Chats = ({ data, navigation }) => {
       <FlatList
         data={data}
         indicatorStyle="white"
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => <Item data={item} navigation={navigation} />}
         // showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
