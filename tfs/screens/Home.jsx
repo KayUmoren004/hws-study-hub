@@ -56,10 +56,10 @@ const Home = ({ navigation }) => {
   // Context
   const [User] = useContext(UserContext);
 
-  // Listen for changes in "requestForHelp" collection in firestore where tfUID === User.uid
+  // Listen for changes in queue collection in user firestore where tfUID === User.uid
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "requestForHelp"),
+      collection(db, "users", User.uid, "queue"),
       (querySnapshot) => {
         let openArr = [];
         let pendingArr = [];

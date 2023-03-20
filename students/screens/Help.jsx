@@ -67,6 +67,7 @@ import Colors from "../../shared/src/utils/Colors";
 import TFView from "../../shared/src/components/app/TFView";
 import Tags from "../../shared/src/components/app/picker/Tags";
 import { Feather } from "@expo/vector-icons";
+import { FAB } from "@rneui/themed";
 
 const app = initializeApp(FirebaseConfig);
 const auth = getAuth(app);
@@ -253,15 +254,39 @@ const Help = ({ navigation }) => {
             >
               No {pick} TF is online
             </Text>
+            <FAB
+              visible={true}
+              onPress={() => console.log("FAB Pressed")}
+              placement="right"
+              color={Colors.bottleGreen}
+              style={{ position: "absolute", bottom: 0, right: 0 }}
+            />
           </View>
         ) : (
-          <FlatList
-            data={filteredTFs ? filteredTFs : OnlineTFs}
-            renderItem={({ item }) => (
-              <TFView TFs={item} navigation={navigation} />
-            )}
-            keyExtractor={(item) => item.uid}
-          />
+          <View
+            style={{
+              flex: 1,
+            }}
+          >
+            <FlatList
+              data={filteredTFs ? filteredTFs : OnlineTFs}
+              renderItem={({ item }) => (
+                <TFView TFs={item} navigation={navigation} />
+              )}
+              keyExtractor={(item) => item.uid}
+            />
+            <FAB
+              visible={true}
+              onPress={() => console.log("FAB Pressed")}
+              placement="right"
+              color={Colors.bottleGreen}
+              style={{ position: "absolute", bottom: 0, right: 0 }}
+              icon={{
+                name: "settings",
+                color: "#fff",
+              }}
+            />
+          </View>
         )}
       </View>
     </SafeAreaView>

@@ -239,9 +239,12 @@ const Bottom = ({ navigation }) => {
         name="Chat"
         component={Chat}
         options={options(
-          ["bell", "search"],
-          () => navigation.navigate("Notifications"),
-          () => navigation.navigate("Search"),
+          ["", ""],
+          () => {},
+          () => {},
+          // ["bell", "search"],
+          // () => navigation.navigate("Notifications"),
+          // () => navigation.navigate("Search"),
           [25, 25],
           true,
           40,

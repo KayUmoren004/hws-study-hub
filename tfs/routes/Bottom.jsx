@@ -185,7 +185,7 @@ const Bottom = ({ navigation }) => {
   // Listen for changes in "requestForHelp" collection in firestore where tfUID === User.uid and get its length
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "requestForHelp"),
+      collection(db, "users", User.uid, "queue"),
       (querySnapshot) => {
         let counter = 0;
         querySnapshot.forEach((doc) => {
@@ -250,9 +250,12 @@ const Bottom = ({ navigation }) => {
         name="Chat"
         component={Chat}
         options={options(
-          ["bell", "search"],
-          () => navigation.navigate("Notifications"),
-          () => navigation.navigate("Search"),
+          ["", ""],
+          () => {},
+          () => {},
+          // ["bell", "search"],
+          // () => navigation.navigate("Notifications"),
+          // () => navigation.navigate("Search"),
           [25, 25],
           true,
           40,

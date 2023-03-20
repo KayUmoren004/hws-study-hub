@@ -62,6 +62,18 @@ const Person = ({ route, navigation }) => {
 
       if (helpRequested) {
         setHelpR(true);
+
+        // Add Request to User's Pending Requests
+        const addRequest = await Firebase.App.addUserRequestToPending(
+          title,
+          description,
+          person.uid
+        );
+
+        if (addRequest) {
+          // Go back to the home screen
+          navigation.goBack();
+        }
       }
     } catch (err) {
       console.log("Error @Person.jsx: requestHelp: ", err);
@@ -139,7 +151,7 @@ const Person = ({ route, navigation }) => {
                   justifyContent: "center",
                   alignItems: "center",
                   marginTop: 20,
-                  marginBottom: 10,
+                  marginBottom: 20,
                 }}
               >
                 <Loading />
@@ -307,6 +319,12 @@ const Person = ({ route, navigation }) => {
               <TouchableOpacity
                 onPress={() => {
                   navigation.goBack();
+
+                  const sharedUID = `${User.uid}-${person.uid}`;
+
+                  // Set Status to in progress
+                  Firebase.App.setStatus(sharedUID, "In Progress");
+
                   navigation.navigate("Message", {
                     person,
                     data,

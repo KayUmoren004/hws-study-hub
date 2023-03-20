@@ -442,6 +442,44 @@ const App = {
     return `${uid1}-${uid2}`;
   },
 
+  // Add User Request to Pending
+  addUserRequestToPending: async (title, description, tfUID) => {
+    try {
+      const uid = Firebase.Auth.getCurrentUser().uid;
+      const docRef = doc(db, "users", uid);
+
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const user = docSnap.data();
+
+        // Get TF User
+        const tf = await getDoc(doc(db, "users", tfUID));
+
+        // Shared UID
+        const sharedUID = App.createSharedUID(tfUID, user.uid);
+
+        // TF User Queue Ref
+        const pendingRequestRef = doc(db, "users", uid, "requests", sharedUID);
+
+        await setDoc(pendingRequestRef, {
+          title,
+          description,
+          tfUID: tfUID,
+          requestor: user,
+          tf: tf.data(),
+          createdAt: serverTimestamp(),
+          status: "Open",
+          sharedUID: sharedUID,
+        });
+
+        return true;
+      }
+    } catch (err) {
+      console.log("Error @Firebase.addUserRequestToPending: ", err.message);
+    }
+  },
+
   // Request for Help
   requestForHelp: async (title, description, tfUID) => {
     try {
@@ -459,14 +497,31 @@ const App = {
         // Shared UID
         const sharedUID = App.createSharedUID(tfUID, user.uid);
 
-        await setDoc(doc(db, "requestForHelp", sharedUID), {
+        // TF User Queue Ref
+        const tfQueueDocRef = doc(db, "users", tfUID, "queue", sharedUID);
+
+        await setDoc(tfQueueDocRef, {
           title,
           description,
           tfUID: tfUID,
           requestor: user,
           tf: tf.data(),
           createdAt: serverTimestamp(),
-          status: "open",
+          status: "Open",
+          sharedUID: sharedUID,
+        });
+
+        // Add a reference to this request to the "requestForHelp" collection
+        const requestForHelpDocRef = doc(db, "requestForHelp", sharedUID);
+
+        await setDoc(requestForHelpDocRef, {
+          title,
+          description,
+          tfUID: tfUID,
+          requestor: user,
+          tf: tf.data(),
+          createdAt: serverTimestamp(),
+          status: "Open",
           sharedUID: sharedUID,
         });
 
@@ -474,6 +529,35 @@ const App = {
       }
     } catch (err) {
       console.log("Error @Firebase.requestForHelp: ", err.message);
+    }
+  },
+
+  // Set Status of Request
+  setStatus: async (sharedUID, status) => {
+    try {
+      // const uid = Firebase.Auth.getCurrentUser().uid;
+
+      // Deconstruct sharedUID to get uid1 and uid2
+      const [uid1, uid2] = sharedUID.split("-");
+      const docRef1 = doc(db, "users", uid1, "queue", sharedUID);
+      const docRef2 = doc(db, "users", uid2, "requests", sharedUID);
+      const docRef3 = doc(db, "requestForHelp", sharedUID);
+
+      await updateDoc(docRef1, {
+        status: status,
+      });
+
+      await updateDoc(docRef2, {
+        status: status,
+      });
+
+      await updateDoc(docRef3, {
+        status: status,
+      });
+
+      return true;
+    } catch (err) {
+      console.log("Error @Firebase.setStatus: ", err.message);
     }
   },
 
