@@ -24,7 +24,7 @@ const Auth = () => {
     >
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="S1" component={S1} />
-      <Stack.Screen name="Signup" component={Signup} />
+      <Stack.Screen name="SignUp" component={Signup} />
       <Stack.Screen name="Verify" component={Verify} />
       <Stack.Screen name="Forgot" component={Forgot} />
     </Stack.Navigator>

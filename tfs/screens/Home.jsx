@@ -152,6 +152,33 @@ const Home = ({ navigation }) => {
     }
   };
 
+  // Get correct img
+  const getImg = (item) => {
+    let img;
+
+    if (item.profilePhotoUrl !== "default") {
+      console.log("Local Photo: ", item.localPhotoUrl);
+
+      if (
+        (img === null || img === undefined || img === "") &&
+        item.localPhotoUrl !== null &&
+        item.localPhotoUrl !== undefined &&
+        item.localPhotoUrl !== ""
+      ) {
+        img = item.localPhotoUrl;
+      } else {
+        // (async () => {
+        //   const response = await fetch(item.profilePhotoUrl);
+        //   const blob = await response.blob();
+        //   img = URL.createObjectURL(blob);
+        // })();
+        img = item.profilePhotoUrl;
+      }
+    }
+
+    return img;
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -231,6 +258,7 @@ const Home = ({ navigation }) => {
               Student={item.requestor}
               navigation={navigation}
               data={item}
+              image={getImg(item.requestor)}
             />
           )}
         />

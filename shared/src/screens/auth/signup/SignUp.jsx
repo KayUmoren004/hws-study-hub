@@ -116,13 +116,14 @@ const SignUp = ({ navigation, route }) => {
       profilePhoto,
       tags: ["default"],
       totalHelped: 0,
+      localPhotoUrl: profilePhoto,
     };
 
     try {
       if (profilePhoto === false || profilePhoto === null) {
         alert("Please add a profile photo");
       } else {
-        const createdUser = await Firebase.createUser(fullUser);
+        const createdUser = await Firebase.Auth.createUser(fullUser);
 
         setUser({ ...createdUser, isLoggedIn: true });
       }

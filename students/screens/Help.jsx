@@ -168,6 +168,50 @@ const Help = ({ navigation }) => {
     }
   };
 
+  // if (User.profilePhotoUrl !== "default") {
+  //   if (
+  //     (image === null || image === undefined || image === "") &&
+  //     User.localPhotoUrl !== null &&
+  //     User.localPhotoUrl !== undefined &&
+  //     User.localPhotoUrl !== ""
+  //   ) {
+  //     setImage(User.localPhotoUrl);
+  //   } else {
+  //     (async () => {
+  //       const response = await fetch(User.profilePhotoUrl);
+  //       const blob = await response.blob();
+  //       setImage(URL.createObjectURL(blob));
+  //     })();
+  //   }
+  // }
+
+  // Get correct img
+  const getImg = (item) => {
+    let img;
+
+    if (item.profilePhotoUrl !== "default") {
+      console.log("Local Photo: ", item.localPhotoUrl);
+
+      if (
+        (img === null || img === undefined || img === "") &&
+        item.localPhotoUrl !== null &&
+        item.localPhotoUrl !== undefined &&
+        item.localPhotoUrl !== ""
+      ) {
+        img = item.localPhotoUrl;
+      } else {
+        // (async () => {
+        //   const response = await fetch(item.profilePhotoUrl);
+        //   const blob = await response.blob();
+        //   img = URL.createObjectURL(blob);
+        // })();
+        img = item.profilePhotoUrl;
+      }
+    }
+
+    return img;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -270,9 +314,17 @@ const Help = ({ navigation }) => {
           >
             <FlatList
               data={filteredTFs ? filteredTFs : OnlineTFs}
-              renderItem={({ item }) => (
-                <TFView TFs={item} navigation={navigation} />
-              )}
+              renderItem={({ item }) => {
+                console.log(getImg(item));
+                console.log("item: ", item);
+                return (
+                  <TFView
+                    TFs={item}
+                    navigation={navigation}
+                    image={getImg(item)}
+                  />
+                );
+              }}
               keyExtractor={(item) => item.uid}
             />
             <FAB

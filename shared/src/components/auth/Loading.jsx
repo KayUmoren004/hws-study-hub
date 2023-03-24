@@ -76,6 +76,7 @@ const Loading = () => {
           status: "",
           isTF: doc.isTF,
           totalHelped: doc.totalHelped,
+          localPhotoUrl: doc.localPhotoUrl,
         };
         setUser(authUser);
       }

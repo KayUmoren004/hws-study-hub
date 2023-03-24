@@ -115,10 +115,10 @@ const Auth = {
   },
   // Upload Profile Photo
   uploadProfilePhoto: async (uri) => {
-    const uid = Firebase.getCurrentUser().uid;
+    const uid = Auth.getCurrentUser().uid;
     try {
       console.log("Init, ", uri);
-      const photo = await Firebase.getBlob(uri);
+      const photo = await Auth.getBlob(uri);
       console.log("Modified URI: ", photo);
       // const photo = await fetch(uri).then((r) => r.blob());
       console.log("0");
@@ -172,7 +172,7 @@ const Auth = {
         user.email,
         user.actualPassword
       );
-      const uid = Firebase.getCurrentUser().uid;
+      const uid = Auth.getCurrentUser().uid;
       let profilePhotoUrl = "default";
       await setDoc(doc(db, "users", uid), {
         name: user.name,
@@ -185,9 +185,10 @@ const Auth = {
         createdAt: serverTimestamp(),
         tags: ["default"],
         totalHelped: 0,
+        localPhotoUrl: user.localPhotoUrl,
       });
       if (user.profilePhoto) {
-        profilePhotoUrl = await Firebase.uploadProfilePhoto(user.profilePhoto);
+        profilePhotoUrl = await Auth.uploadProfilePhoto(user.profilePhoto);
       }
 
       delete user.actualPassword;
@@ -234,7 +235,7 @@ const Auth = {
   // Verify Email
   verifyEmail: async () => {
     try {
-      const user = Firebase.getCurrentUser();
+      const user = Auth.getCurrentUser();
       await sendEmailVerification(user);
 
       return true;

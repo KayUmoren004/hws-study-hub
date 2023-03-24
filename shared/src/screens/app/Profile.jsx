@@ -14,7 +14,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { Divider } from "react-native-paper";
 import { UserContext } from "../../helpers/UserContext";
 import Colors from "../../utils/Colors";
 import Delimitated from "../../../../shared/src/components/app/Tag/Delimitated";
@@ -53,15 +52,28 @@ const Profile = ({ navigation }) => {
 
   // Load image on mount
   const [image, setImage] = React.useState(null);
+
+  // console.log("User: ", User.localPhotoUrl);
+
   React.useEffect(() => {
     if (User.profilePhotoUrl !== "default") {
-      (async () => {
-        const response = await fetch(User.profilePhotoUrl);
-        const blob = await response.blob();
-        setImage(URL.createObjectURL(blob));
-      })();
+      if (
+        (image === null || image === undefined || image === "") &&
+        User.localPhotoUrl !== null &&
+        User.localPhotoUrl !== undefined &&
+        User.localPhotoUrl !== ""
+      ) {
+        setImage(User.localPhotoUrl);
+      } else {
+        (async () => {
+          const response = await fetch(User.profilePhotoUrl);
+          const blob = await response.blob();
+          setImage(URL.createObjectURL(blob));
+        })();
+      }
     }
-  }, []);
+  }, [User, image]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View
@@ -91,7 +103,6 @@ const Profile = ({ navigation }) => {
           {/* Profile Photo */}
           <View
             style={{
-              // shadowOpacity: 0.5,
               marginTop: 15,
               shadowRadius: 30,
               shadowColor: "#d2d2d2",
@@ -101,7 +112,7 @@ const Profile = ({ navigation }) => {
           >
             <Image
               source={
-                User.photo === "default"
+                User.profilePhotoUrl === "default"
                   ? require("../../../../assets/icon.png")
                   : { uri: image }
               }
@@ -151,8 +162,6 @@ const Profile = ({ navigation }) => {
             style={{
               flexDirection: "column",
               justifyContent: "center",
-              // alignItems: "flex-start",
-              // marginHorizontal: 10,
               marginVertical: 20,
             }}
           >
@@ -191,8 +200,6 @@ const Profile = ({ navigation }) => {
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
-                // marginHorizontal: 10,
-                // marginVertical: 20,
               }}
             >
               {/* Stats */}
