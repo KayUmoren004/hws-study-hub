@@ -56,7 +56,7 @@ const app = initializeApp(FirebaseConfig);
 const db = getFirestore(app);
 const realtime = getDatabase(app);
 
-const Header = ({ navigation, person }) => {
+const Header = ({ navigation, person, faceTime, phoneNumber, num }) => {
   // State
   const [status, setStatus] = React.useState("");
 
@@ -67,9 +67,9 @@ const Header = ({ navigation, person }) => {
       const data = snapshot.val();
       if (data) {
         if (data[person.uid]) {
-          setStatus("online");
+          setStatus("Online");
         } else {
-          setStatus("offline");
+          setStatus("Offline");
         }
       }
     });
@@ -182,20 +182,38 @@ const Header = ({ navigation, person }) => {
               alignItems: "center",
             }}
           >
-            <TouchableOpacity onPress={() => console.log("Phone Call")}>
+            <TouchableOpacity
+              onPress={() =>
+                num === undefined
+                  ? alert(
+                      "You need to add a phone number to your profile first"
+                    )
+                  : phoneNumber(num)
+              }
+              // disabled={num === undefined ? true : false}
+            >
               <Feather
                 style={{ marginRight: 20 }}
                 name="phone"
                 size={25}
-                color="#fff"
+                color={num === undefined ? "#ffffff40" : "#fff"}
               />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => console.log("Video Call")}>
+            <TouchableOpacity
+              onPress={() =>
+                num === undefined
+                  ? alert(
+                      "You need to add a phone number to your profile first"
+                    )
+                  : faceTime(num)
+              }
+              // disabled={num === undefined ? true : false}
+            >
               <Feather
                 style={{ marginRight: 20 }}
                 name="video"
                 size={25}
-                color="#fff"
+                color={num === undefined ? "#ffffff40" : "#fff"}
               />
             </TouchableOpacity>
           </View>

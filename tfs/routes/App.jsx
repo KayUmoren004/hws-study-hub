@@ -74,7 +74,7 @@ const App = ({ navigation }) => {
           // headerShown: false,
           // Set header to transparent
           headerTransparent: true,
-          headerTintColor: "#fff",
+          headerTintColor: "#b8c5f5ff",
           headerTitleStyle: {
             color: "transparent",
           },

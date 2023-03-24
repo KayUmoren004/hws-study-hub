@@ -110,7 +110,13 @@ const App = () => {
         name="Chat Person"
         component={CPerson}
         options={{
-          headerShown: false,
+          // headerShown: false,
+          // Set header to transparent
+          headerTransparent: true,
+          headerTintColor: "#b8c5f5ff",
+          headerTitleStyle: {
+            color: "transparent",
+          },
         }}
       />
     </Stack.Navigator>

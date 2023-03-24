@@ -17,6 +17,8 @@ import {
   TouchableOpacity,
   View,
   // SafeAreaView,
+  Linking,
+  Platform,
 } from "react-native";
 import {
   GiftedChat,
@@ -81,6 +83,14 @@ const realtime = getDatabase(app);
 
 // Render
 import { CustomMessage } from "./Renders";
+
+const Left = () => {
+  return (
+    <TouchableOpacity style={{}} onPress={() => console.log("Attachment")}>
+      <Feather name="paperclip" size={20} color={Colors.white} />
+    </TouchableOpacity>
+  );
+};
 
 const Chat = ({ navigation, route }) => {
   const [messages, setMessages] = useState([]);
@@ -174,7 +184,15 @@ const Chat = ({ navigation, route }) => {
   // use effect to change the header
   useLayoutEffect(() => {
     navigation.setOptions({
-      header: () => <Header navigation={navigation} person={person} />,
+      header: () => (
+        <Header
+          navigation={navigation}
+          person={person}
+          faceTime={facetime}
+          phoneNumber={callPhoneNumber}
+          num={person.phone}
+        />
+      ),
     });
   }, [navigation]);
 
@@ -274,14 +292,6 @@ const Chat = ({ navigation, route }) => {
     Firebase.Messages.sendMessage(newMessages);
   }, []);
 
-  const Left = () => {
-    return (
-      <TouchableOpacity style={{}} onPress={() => console.log("Attachment")}>
-        <Feather name="paperclip" size={20} color={Colors.white} />
-      </TouchableOpacity>
-    );
-  };
-
   // Get User
   const getUser = () => {
     return {
@@ -306,6 +316,43 @@ const Chat = ({ navigation, route }) => {
       console.log("Error getting messages: ", error);
     }
   }, []);
+
+  // Create FaceTime Link
+  const generateFaceTimeLink = (phoneNumber) => {
+    const link = `facetime:${phoneNumber}`;
+    return link;
+  };
+
+  // Send FaceTime Link
+  const sendFaceTimeLink = (phoneNumber) => {
+    const link = generateFaceTimeLink(phoneNumber);
+    // const message = {
+    //   _id: Math.random().toString(36).substring(7),
+    //   text: link,
+    //   createdAt: new Date(),
+    //   user: getUser(),
+    // };
+
+    // Firebase.Messages.sendMessage([message]);
+
+    Linking.openURL(`sms:&body=${encodeURIComponent(link)}`);
+  };
+
+  // Link Clicked
+  // const linkClicked = (link) => {
+  //   Linking.openURL(link);
+  // };
+
+  function facetime(phoneNumber) {
+    const url =
+      Platform.OS === "ios" ? `facetime:${phoneNumber}` : `tel:${phoneNumber}`;
+
+    Linking.openURL(url);
+  }
+
+  function callPhoneNumber(phoneNumber) {
+    Linking.openURL(`tel:${phoneNumber}`);
+  }
 
   return (
     <SafeAreaView edges={["right", "bottom", "left"]} style={styles.container}>

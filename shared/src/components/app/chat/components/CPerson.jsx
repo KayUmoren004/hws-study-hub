@@ -101,17 +101,31 @@ const CPerson = ({ navigation, route }) => {
     return uid;
   };
 
+  // Return the last input for the collection ref based on if user is a TF or not
+  const returnCollectionRef = () => {
+    return User.isTF === true ? "queue" : "requests";
+  };
+
   // On Mount, set the pick
   useLayoutEffect(() => {
+    const lastVal = returnCollectionRef();
+
+    console.log("lastVal: ", lastVal);
+
     // Collection Reference
-    const collectionRef = collection(db, "requestForHelp");
+    const collectionRef = collection(
+      db,
+      "users",
+      User.uid,
+      returnCollectionRef()
+    );
 
     const unSubscribe = onSnapshot(collectionRef, (querySnapshot) => {
       // Find the document id that matches the returnUID
       querySnapshot.forEach((doc) => {
         if (doc.id === returnUID()) {
           setPick(doc.data().status);
-          // console.log("CPerson: ", doc.data().status);
+          console.log("CPerson: ", doc.data().status);
         }
       });
     });
@@ -124,10 +138,26 @@ const CPerson = ({ navigation, route }) => {
   // Update the status
   const updateStatus = async (status) => {
     // Document Reference
-    const docRef = doc(db, "requestForHelp", returnUID());
+    const docRef1 = doc(db, "requestForHelp", returnUID());
+    const docRef2 = doc(
+      db,
+      "users",
+      User.uid,
+      returnCollectionRef(),
+      returnUID()
+    );
+    const docRef3 = doc(db, "users", person.uid, "requests", returnUID());
 
     // Update the status
-    await updateDoc(docRef, {
+    await updateDoc(docRef1, {
+      status: status,
+    });
+
+    await updateDoc(docRef2, {
+      status: status,
+    });
+
+    await updateDoc(docRef3, {
       status: status,
     });
 
