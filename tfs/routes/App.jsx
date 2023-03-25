@@ -33,7 +33,15 @@ const App = ({ navigation }) => {
         name="Settings"
         component={Settings}
         options={{
-          headerShown: false,
+          // headerShown: false,
+          headerStyle: {
+            backgroundColor: "#000",
+          },
+          headerTitleStyle: {
+            fontWeight: "bold",
+            fontSize: 20,
+            color: "#fff",
+          },
         }}
       />
       <Stack.Screen

@@ -65,148 +65,6 @@ const Chat = ({ navigation }) => {
   // On mount get conversations
   useEffect(() => {
     try {
-      // Get Chat Rooms where User.uid is in the key of the firebase realtime database
-      // const getData = async () => {
-      //   onValue(dbRef(realtime, "messages/"), (snapshot) => {
-      //     // If there are no chat rooms, return
-      //     if (!snapshot.val()) {
-      //       return;
-      //     }
-
-      //     const alpha = snapshot.val();
-      //     // // console.log("alpha: ", alpha);
-      //     const chatRooms = Object.keys(alpha).filter((key) => {
-      //       return key.includes(User.uid);
-      //     });
-      //     setChatRooms(chatRooms);
-
-      //     // For every chat room get the conversation
-      //     chatRooms.forEach(async (chatRoom) => {
-      //       onValue(dbRef(realtime, `messages/${chatRoom}`), (snapshot) => {
-      //         const beta = snapshot.val();
-      //         // // console.log("beta: ", beta);
-
-      //         // Sort the conversations by time stamp - newest to oldest
-      //         const sorted = Object.keys(beta).sort((a, b) => {
-      //           return beta[b].timeStamp - beta[a].timeStamp;
-      //         });
-
-      //         // Get the object of the sorted conversation
-      //         const conversation = beta[sorted[0]];
-
-      //         setConversations([conversation]);
-      //         // For every conversation, create a new object with the conversation and the user and add to data state
-      //         conversations.forEach(async (conversation) => {
-      //           const { uid1, uid2 } = Firebase.Messages.deconstructSharedUID(
-      //             conversation.chatRoomId
-      //           );
-
-      //           // Get the other user
-      //           var textingUID, TF;
-      //           if (uid1 === User.uid) {
-      //             textingUID = uid2;
-      //           } else {
-      //             textingUID = uid1;
-      //           }
-
-      //           // Get data for the user with textingUID
-      //           const docRef = doc(db, "users", textingUID);
-      //           const docSnap = await getDoc(docRef);
-
-      //           TF = docSnap.data();
-
-      //           const newConversation = {
-      //             id: conversation.chatRoomId,
-      //             name: TF.name,
-      //             message: conversation.message,
-      //             time: Functions.timeParse(conversation.timeStamp),
-      //             profilePhotoURL: TF.profilePhotoUrl,
-      //             talkingTo: TF,
-      //             key: Object.keys(beta).find((key) => {
-      //               return beta[key].chatRoomId.includes(User.uid);
-      //             }),
-      //           };
-
-      //           // // console.log("newConversation: ", newConversation);
-
-      //           setData((prev) => [...prev, newConversation]);
-      //         });
-      //       });
-      //     });
-      //   });
-      // };
-
-      // const getData = async () => {
-      //   onValue(dbRef(realtime, "messages/"), async (snapshot) => {
-      //     // If there are no chat rooms, return
-      //     if (!snapshot.val()) {
-      //       return;
-      //     }
-
-      //     const alpha = snapshot.val();
-      //     // // console.log("alpha: ", alpha);
-      //     const chatRooms = Object.keys(alpha).filter((key) => {
-      //       return key.includes(User.uid);
-      //     });
-      //     setChatRooms(chatRooms);
-
-      //     // For every chat room get the conversation
-      //     for (const chatRoom of chatRooms) {
-      //       const snapshot = await get(dbRef(realtime, `messages/${chatRoom}`));
-      //       const beta = snapshot.val();
-      //       // // console.log("beta: ", beta);
-
-      //       // Sort the conversations by time stamp - newest to oldest
-      //       const sorted = Object.keys(beta).sort((a, b) => {
-      //         return beta[b].timeStamp - beta[a].timeStamp;
-      //       });
-
-      //       // Get the object of the sorted conversation
-      //       const conversation = beta[sorted[0]];
-
-      //       // For every conversation, create a new object with the conversation and the user and add to data state
-      //       const newConversations = [];
-      //       for (const conversation of conversations) {
-      //         const { uid1, uid2 } = Firebase.Messages.deconstructSharedUID(
-      //           conversation.chatRoomId
-      //         );
-
-      //         // Get the other user
-      //         var textingUID, TF;
-      //         if (uid1 === User.uid) {
-      //           textingUID = uid2;
-      //         } else {
-      //           textingUID = uid1;
-      //         }
-
-      //         // Get data for the user with textingUID
-      //         const docRef = doc(db, "users", textingUID);
-      //         const docSnap = await getDoc(docRef);
-
-      //         TF = docSnap.data();
-
-      //         const newConversation = {
-      //           id: conversation.chatRoomId,
-      //           name: TF.name,
-      //           message: conversation.message,
-      //           time: Functions.timeParse(conversation.timeStamp),
-      //           profilePhotoURL: TF.profilePhotoUrl,
-      //           talkingTo: TF,
-      //           key: Object.keys(beta).find((key) => {
-      //             return beta[key].chatRoomId.includes(User.uid);
-      //           }),
-      //         };
-
-      //         // // console.log("newConversation: ", newConversation);
-
-      //         newConversations.push(newConversation);
-      //       }
-
-      //       setData((prev) => [...prev, ...newConversations]);
-      //     }
-      //   });
-      // };
-
       const getData = async () => {
         onValue(dbRef(realtime, "messages/"), (snapshot) => {
           // If there are no chat rooms, return
@@ -215,7 +73,6 @@ const Chat = ({ navigation }) => {
           }
 
           const alpha = snapshot.val();
-          // // console.log("alpha: ", alpha);
           const chatRooms = Object.keys(alpha).filter((key) => {
             return key.includes(User.uid);
           });
@@ -229,8 +86,6 @@ const Chat = ({ navigation }) => {
               dbRef(realtime, `messages/${chatRoom}`),
               async (snapshot) => {
                 const beta = snapshot.val();
-                // // console.log("beta: ", beta);
-
                 // Sort the conversations by time stamp - newest to oldest
                 const sorted = Object.keys(beta).sort((a, b) => {
                   return beta[b].timeStamp - beta[a].timeStamp;
@@ -266,9 +121,6 @@ const Chat = ({ navigation }) => {
                     return beta[key].chatRoomId.includes(User.uid);
                   }),
                 };
-
-                // // console.log("newConversation: ", newConversation);
-
                 newData.push(newConversation);
                 if (newData.length === chatRooms.length) {
                   // Sort conversations by the latest message for each chat room
@@ -287,15 +139,9 @@ const Chat = ({ navigation }) => {
 
       getData();
     } catch (error) {
-      // // console.log("Error @Chat.jsx: ", error);
+      console.log("Error @Chat.jsx: ", error);
     }
   }, []);
-
-  // // // console.log("Mass Logs: ", {
-  //   Chat_Rooms: chatRooms,
-  //   data: data,
-  //   conversations: conversations,
-  // });
 
   return (
     <View style={styles.container}>

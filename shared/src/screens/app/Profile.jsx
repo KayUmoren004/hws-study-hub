@@ -72,7 +72,9 @@ const Profile = ({ navigation }) => {
         })();
       }
     }
-  }, [User, image]);
+  }, [User]);
+
+  // console.log(User);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -85,21 +87,18 @@ const Profile = ({ navigation }) => {
         {/* Profile Photo and Name */}
         <View>
           {/* Settings */}
-          <TouchableOpacity
+          <View // Add a View container
             style={{
-              position: "absolute",
-              top: 5,
-              right: 20,
-              width: 32,
-              height: 32,
-
-              justifyContent: "center",
-              alignItems: "center",
+              justifyContent: "flex-end", // Added justifyContent property
+              alignItems: "flex-end", // Added alignItems property
+              paddingRight: 16, // Added paddingRight for spacing from the right edge
+              paddingTop: 8, // Added paddingTop for spacing from the top edge
             }}
-            onPress={() => navigation.navigate("Settings")}
           >
-            <Feather name="settings" size={24} color="#fff" />
-          </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("Settings")}>
+              <Feather name="settings" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
           {/* Profile Photo */}
           <View
             style={{

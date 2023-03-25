@@ -68,6 +68,7 @@ import TFView from "../../shared/src/components/app/TFView";
 import Tags from "../../shared/src/components/app/picker/Tags";
 import { Feather } from "@expo/vector-icons";
 import { FAB } from "@rneui/themed";
+import Requests from "./Requests";
 
 const app = initializeApp(FirebaseConfig);
 const auth = getAuth(app);
@@ -168,23 +169,6 @@ const Help = ({ navigation }) => {
     }
   };
 
-  // if (User.profilePhotoUrl !== "default") {
-  //   if (
-  //     (image === null || image === undefined || image === "") &&
-  //     User.localPhotoUrl !== null &&
-  //     User.localPhotoUrl !== undefined &&
-  //     User.localPhotoUrl !== ""
-  //   ) {
-  //     setImage(User.localPhotoUrl);
-  //   } else {
-  //     (async () => {
-  //       const response = await fetch(User.profilePhotoUrl);
-  //       const blob = await response.blob();
-  //       setImage(URL.createObjectURL(blob));
-  //     })();
-  //   }
-  // }
-
   // Get correct img
   const getImg = (item) => {
     let img;
@@ -211,6 +195,9 @@ const Help = ({ navigation }) => {
 
     return img;
   };
+
+  // Close Visible
+  const [closeVisible, setCloseVisible] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -300,10 +287,49 @@ const Help = ({ navigation }) => {
             </Text>
             <FAB
               visible={true}
-              onPress={() => console.log("FAB Pressed")}
+              onPress={() => navigation.navigate("My Requests")}
               placement="right"
               color={Colors.bottleGreen}
               style={{ position: "absolute", bottom: 0, right: 0 }}
+              icon={() => (
+                <Feather
+                  name="git-pull-request"
+                  size={24}
+                  color={Colors.white}
+                />
+              )}
+            />
+          </View>
+        ) : OnlineTFs?.length == 0 ? (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 24,
+                fontWeight: "bold",
+              }}
+            >
+              No TF's are online
+            </Text>
+            <FAB
+              visible={true}
+              onPress={() => navigation.navigate("My Requests")}
+              placement="right"
+              color={Colors.bottleGreen}
+              style={{ position: "absolute", bottom: 0, right: 0 }}
+              icon={() => (
+                <Feather
+                  name="git-pull-request"
+                  size={24}
+                  color={Colors.white}
+                />
+              )}
             />
           </View>
         ) : (
@@ -329,14 +355,17 @@ const Help = ({ navigation }) => {
             />
             <FAB
               visible={true}
-              onPress={() => console.log("FAB Pressed")}
+              onPress={() => navigation.navigate("My Requests")}
               placement="right"
               color={Colors.bottleGreen}
               style={{ position: "absolute", bottom: 0, right: 0 }}
-              icon={{
-                name: "settings",
-                color: "#fff",
-              }}
+              icon={() => (
+                <Feather
+                  name="git-pull-request"
+                  size={24}
+                  color={Colors.white}
+                />
+              )}
             />
           </View>
         )}

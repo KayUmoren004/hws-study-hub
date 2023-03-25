@@ -260,7 +260,9 @@ const Bottom = ({ navigation }) => {
           () => {},
           () => navigation.navigate("Settings"),
           [0, 20],
-          false
+          false,
+          20,
+          Colors.black
         )}
       />
     </Tab.Navigator>

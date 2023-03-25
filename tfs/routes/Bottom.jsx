@@ -189,7 +189,7 @@ const Bottom = ({ navigation }) => {
       (querySnapshot) => {
         let counter = 0;
         querySnapshot.forEach((doc) => {
-          if (doc.data().tfUID === User.uid) {
+          if (doc.data().tfUID === User.uid && doc.data().status === "open") {
             counter++;
           }
         });

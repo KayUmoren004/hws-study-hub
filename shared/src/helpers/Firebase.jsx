@@ -14,6 +14,7 @@ import {
   onAuthStateChanged,
   initializeAuth,
   sendEmailVerification,
+  deleteUser,
 } from "firebase/auth";
 
 import {
@@ -105,6 +106,14 @@ const Auth = {
   // Update User data
   updateUserData: async (uid, user) => {
     try {
+      // Look though the user object and remove any keys that are null or undefined
+      for (const key in user) {
+        if (user[key] === null || user[key] === undefined) {
+          delete user[key];
+        }
+      }
+
+      // Update the user data
       await updateDoc(doc(db, "users", uid), user);
 
       return true;
@@ -245,9 +254,16 @@ const Auth = {
   },
 
   // Delete User
-  deleteUser: async (uid) => {
+  deleteUserData: async (uid) => {
     try {
+      // Get Current User
+      const user = Auth.getCurrentUser();
+
+      // Delete User Data
       await deleteDoc(doc(db, "users", uid));
+
+      // Delete User Auth
+      await deleteUser(user);
 
       return true;
     } catch (err) {

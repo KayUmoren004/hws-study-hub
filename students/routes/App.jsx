@@ -13,6 +13,7 @@ import Person from "../../shared/src/components/app/profile/Person";
 import CPerson from "../../shared/src/components/app/chat/components/CPerson";
 
 import Message from "../../shared/src/components/app/chat/components/Chat";
+import Requests from "../screens/Requests";
 const App = () => {
   // Nav
   const Stack = createNativeStackNavigator();
@@ -47,7 +48,15 @@ const App = () => {
         name="Settings"
         component={Settings}
         options={{
-          headerShown: false,
+          // headerShown: false,
+          headerStyle: {
+            backgroundColor: "#000",
+          },
+          headerTitleStyle: {
+            fontWeight: "bold",
+            fontSize: 20,
+            color: "#fff",
+          },
         }}
       />
       <Stack.Screen
@@ -117,6 +126,23 @@ const App = () => {
           headerTitleStyle: {
             color: "transparent",
           },
+        }}
+      />
+      <Stack.Screen
+        name="My Requests"
+        component={Requests}
+        options={{
+          presentation: "modal",
+          headerShown: false,
+          headerStyle: {
+            backgroundColor: "#1d1d1d",
+          },
+          // headerTintColor: "#fff",
+          headerTitleStyle: {
+            fontWeight: "bold",
+            color: "#fff",
+          },
+          // headerLeft: () => <Button title="Close" />,
         }}
       />
     </Stack.Navigator>

@@ -1,6 +1,6 @@
 // Person but different. I don't know why. Only see this screen when the person is clicked in the chat screen
 
-import React, { useContext, useLayoutEffect, useState } from "react";
+import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
 
 // Dependencies
 import {
@@ -86,6 +86,7 @@ const CPerson = ({ navigation, route }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [pickerSeen, setPickerSeen] = useState(false);
   const [pick, setPick] = useState(s[0]);
+  const [status, setStatus] = useState(null);
 
   // console.log("person: ", person);
 
@@ -167,6 +168,50 @@ const CPerson = ({ navigation, route }) => {
     // Set the pick
     setPick(status);
   };
+
+  console.log("Status: ", status);
+
+  // // Get the status
+  // const getStatus = async () => {
+  //   // Document Reference
+  //   const docRef = doc(db, "users", User.uid, "requests", returnUID());
+
+  //   // Get the status
+  //   const docSnap = await getDoc(docRef);
+
+  //   if (docSnap.exists()) {
+  //     setStatus(docSnap.data().status);
+  //   }
+  // };
+
+  // // Get the status on mount
+  // useLayoutEffect(() => {
+  //   getStatus();
+  // }, []);
+
+  // Listen for changes in the status and then update the status
+  useEffect(() => {
+    // Collection Reference
+    const collectionRef = collection(
+      db,
+      "users",
+      User.uid,
+      returnCollectionRef()
+    );
+
+    const unSubscribe = onSnapshot(collectionRef, (querySnapshot) => {
+      // Find the document id that matches the returnUID
+      querySnapshot.forEach((doc) => {
+        if (doc.id === returnUID()) {
+          setStatus(doc.data().status);
+        }
+      });
+    });
+
+    return () => {
+      unSubscribe();
+    };
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -355,33 +400,73 @@ const CPerson = ({ navigation, route }) => {
           ) : (
             <View
               style={{
-                flexDirection: "column",
-                justifyContent: "center",
+                flexDirection: "row",
+                justifyContent: "space-between",
                 alignItems: "center",
-                // marginHorizontal: 10,
-                // marginVertical: 20,
+                marginHorizontal: 10,
+                marginVertical: 20,
               }}
             >
-              {/* Stats */}
-              <Text
-                style={{
-                  color: "#fff",
-                  textAlign: "center",
-                  fontSize: 25,
-                  fontWeight: "bold",
-                }}
-              >
-                Stats
-              </Text>
-              {/* Stats  */}
-              <View
-                style={{
-                  marginTop: 10,
-                }}
-              >
-                <Text style={{ color: "#fff", fontSize: 18 }}>
-                  Total Helped: {person.totalHelped}
+              {/* Status */}
+              <View>
+                <Text
+                  style={{
+                    color: "#fff",
+                    textAlign: "center",
+                    fontSize: 25,
+                    fontWeight: "bold",
+                  }}
+                >
+                  Status
                 </Text>
+                <View
+                  style={{
+                    marginTop: 10,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color:
+                        status === "Open"
+                          ? Colors.lavenderBlue
+                          : status === "Pending"
+                          ? Colors.yellow
+                          : status === "In Progress"
+                          ? Colors.orange
+                          : status === "Completed"
+                          ? Colors.bottleGreen
+                          : "#fff",
+                      fontSize: 18,
+                      textAlign: "center",
+                    }}
+                  >
+                    {status}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Stats */}
+              <View>
+                <Text
+                  style={{
+                    color: "#fff",
+                    textAlign: "center",
+                    fontSize: 25,
+                    fontWeight: "bold",
+                  }}
+                >
+                  Stats
+                </Text>
+                {/* Stats  */}
+                <View
+                  style={{
+                    marginTop: 10,
+                  }}
+                >
+                  <Text style={{ color: "#fff", fontSize: 18 }}>
+                    Total Helped: {person.totalHelped}
+                  </Text>
+                </View>
               </View>
             </View>
           )}

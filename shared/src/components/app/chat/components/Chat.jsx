@@ -190,7 +190,7 @@ const Chat = ({ navigation, route }) => {
           person={person}
           faceTime={facetime}
           phoneNumber={callPhoneNumber}
-          num={person.phone}
+          num={person.phoneNumber}
         />
       ),
     });

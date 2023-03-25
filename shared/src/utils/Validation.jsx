@@ -68,3 +68,44 @@ export const RequestHelp = Yup.object().shape({
     .min(20, "Description must be at least 20 characters"),
   // tag: Yup.string().required("Tag is required"),
 });
+
+// Edit Profile
+
+// Name
+export const NameSchema = Yup.object().shape({
+  name: Yup.string()
+    .required("Full Name is required")
+    .min(6, "Full Name must be at least 6 characters long")
+    .max(30, "Full Name must be less than 30 characters long"),
+});
+
+// Email
+export const EmailSchema = Yup.object().shape({
+  email: Yup.string()
+    .email("Invalid email")
+    .required("Required")
+    .matches(/[\w0-9\.-]*@hws\.edu/, "HWS email is required"),
+});
+
+// Password
+export const PasswordSchema = Yup.object().shape({
+  password: Yup.string()
+    .required("Please Enter your password")
+    .matches(
+      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/,
+      "Must Contain 8 Characters, One Uppercase, One Lowercase, One Number and one special case Character"
+    ),
+  confirmPassword: Yup.string()
+    .required("Please Confirm your password")
+    .oneOf([Yup.ref("password"), null], "Passwords must match"),
+});
+
+// Phone Number
+export const PhoneNumberSchema = Yup.object().shape({
+  phoneNumber: Yup.string()
+    .required("Phone Number is required")
+    .matches(
+      /^(\+?1)?[2-9]\d{2}[2-9](?!11)\d{6}$/,
+      "Phone Number must be valid"
+    ),
+});
