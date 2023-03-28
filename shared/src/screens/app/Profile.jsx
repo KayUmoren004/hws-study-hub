@@ -19,6 +19,9 @@ import Colors from "../../utils/Colors";
 import Delimitated from "../../../../shared/src/components/app/Tag/Delimitated";
 import { FirebaseContext } from "../../helpers/FirebaseContext";
 
+import CachedImage from "expo-cached-image";
+import FakeImage from "../../components/app/profile/FakeImage";
+
 // Loading Component
 const Loading = () => {
   return (
@@ -49,32 +52,6 @@ const Profile = ({ navigation }) => {
       setIsLoading(false);
     }
   };
-
-  // Load image on mount
-  const [image, setImage] = React.useState(null);
-
-  // console.log("User: ", User.localPhotoUrl);
-
-  React.useEffect(() => {
-    if (User.profilePhotoUrl !== "default") {
-      if (
-        (image === null || image === undefined || image === "") &&
-        User.localPhotoUrl !== null &&
-        User.localPhotoUrl !== undefined &&
-        User.localPhotoUrl !== ""
-      ) {
-        setImage(User.localPhotoUrl);
-      } else {
-        (async () => {
-          const response = await fetch(User.profilePhotoUrl);
-          const blob = await response.blob();
-          setImage(URL.createObjectURL(blob));
-        })();
-      }
-    }
-  }, [User]);
-
-  // console.log(User);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -109,7 +86,7 @@ const Profile = ({ navigation }) => {
               alignItems: "center",
             }}
           >
-            <Image
+            {/* <Image
               source={
                 User.profilePhotoUrl === "default"
                   ? require("../../../../assets/icon.png")
@@ -121,6 +98,33 @@ const Profile = ({ navigation }) => {
                 borderRadius: 64,
               }}
               resizeMode="contain"
+            /> */}
+
+            <CachedImage
+              source={{
+                uri: `${User.profilePhotoUrl}`, // (required) -- URI of the image to be cached
+                // headers: `Authorization: Bearer ${token}`, // (optional)
+                expiresIn: 2_628_288, // 1 month in seconds (optional), if not set -- will never expire and will be managed by the OS
+              }}
+              cacheKey={`${User.uid}-thumb`} // (required) -- key to store image locally
+              placeholderContent={
+                // (optional) -- shows while the image is loading
+                <FakeImage
+                  width={128}
+                  height={128}
+                  borderRadius={64}
+                  name={User.name}
+                />
+              }
+              resizeMode="contain" // pass-through to <Image /> tag
+              style={
+                // pass-through to <Image /> tag
+                {
+                  width: 128,
+                  height: 128,
+                  borderRadius: 64,
+                }
+              }
             />
           </View>
           {/* Name and Status */}

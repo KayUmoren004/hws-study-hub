@@ -80,8 +80,8 @@ const SignUp = ({ navigation, route }) => {
       });
 
       if (!result.canceled) {
-        console.log("result: ", result);
-        console.log("Set Photo Input: ", result.assets[0].uri);
+        // console.log("result: ", result);
+        // console.log("Set Photo Input: ", result.assets[0].uri);
         setProfilePhoto(result.assets[0].uri);
       }
     } catch {
@@ -116,7 +116,6 @@ const SignUp = ({ navigation, route }) => {
       profilePhoto,
       tags: ["default"],
       totalHelped: 0,
-      localPhotoUrl: profilePhoto,
     };
 
     try {

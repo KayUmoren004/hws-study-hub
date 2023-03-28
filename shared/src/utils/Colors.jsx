@@ -21,4 +21,30 @@ const Colors = {
   yellow: "#f2c94cff",
 };
 
+// Light Colors from Colors object
+export const LightColors = [
+  Colors.yellow,
+  Colors.lavenderWeb,
+  Colors.ashGray,
+  Colors.eggshell,
+  Colors.languidWeb,
+  Colors.languidLavender,
+  Colors.lavenderBlue,
+  Colors.lightGray,
+  Colors.white,
+];
+
+// Dark Colors from Colors object - This should be all the remaining colors that are not in LightColors
+export const DarkColors = [
+  Colors.oxfordBlue,
+  Colors.darkByzantium,
+  Colors.cadet,
+  Colors.spanishBistre,
+  Colors.hookersGreen,
+  Colors.black,
+  Colors.gray,
+  Colors.darkGray,
+  Colors.violet,
+];
+
 export default Colors;

@@ -128,7 +128,7 @@ import React, { useState, useRef } from "react";
 import { TextInput, RefreshControl } from "react-native";
 import { FlatList, StyleSheet, Text, View, Animated } from "react-native";
 import Item from "./components/Item";
-import { Divider } from "react-native-paper";
+import { ActivityIndicator, Divider } from "react-native-paper";
 
 const Chats = ({ data, navigation }) => {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
@@ -156,21 +156,21 @@ const Chats = ({ data, navigation }) => {
     }
   );
 
-  const filteredData = data.filter((item) => {
-    const nameMatch = item.name
-      .toLowerCase()
-      .includes(searchText.toLowerCase());
-    const messageMatch = item.message
-      .toLowerCase()
-      .includes(searchText.toLowerCase());
+  // const filteredData = data.filter((item) => {
+  //   const nameMatch = item.name
+  //     .toLowerCase()
+  //     .includes(searchText.toLowerCase());
+  //   const messageMatch = item.message
+  //     .toLowerCase()
+  //     .includes(searchText.toLowerCase());
 
-    return nameMatch || messageMatch;
-  });
+  //   return nameMatch || messageMatch;
+  // });
 
-  return (
+  return data ? (
     <View style={styles.container}>
       <Animated.FlatList
-        data={filteredData}
+        data={data}
         indicatorStyle="white"
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <Item data={item} navigation={navigation} />}
@@ -195,6 +195,16 @@ const Chats = ({ data, navigation }) => {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       />
+    </View>
+  ) : (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <ActivityIndicator size="large" color="#fff" />
     </View>
   );
 };

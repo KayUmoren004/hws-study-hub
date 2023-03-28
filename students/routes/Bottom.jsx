@@ -189,7 +189,7 @@ const Bottom = ({ navigation }) => {
       dbRef(realtime, `users/${User.uid}`),
       (snapshot) => {
         const data = snapshot.val();
-        console.log("Data: ", data);
+        // console.log("Data: ", data);
         const d = [];
         for (const key in data) {
           if (data[key].unread) {

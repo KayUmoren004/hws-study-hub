@@ -263,7 +263,7 @@ const Settings = () => {
 
   // Update Values
   const updateAccount = async (field, value) => {
-    console.log("Update Value: ", value);
+    // console.log("Update Value: ", value);
     const updatedUser = {
       // Copy the rest of the user object but do not overwrite the values that were updated
       ...User,

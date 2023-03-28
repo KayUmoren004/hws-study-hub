@@ -75,6 +75,9 @@ const Loading = () => {
   );
 };
 
+import CachedImage from "expo-cached-image";
+import FakeImage from "../../profile/FakeImage";
+
 const CPerson = ({ navigation, route }) => {
   // Params
   const { person } = route.params;
@@ -83,13 +86,11 @@ const CPerson = ({ navigation, route }) => {
   const [User] = useContext(UserContext);
 
   // State
-  const [isLoading, setIsLoading] = useState(false);
   const [pickerSeen, setPickerSeen] = useState(false);
   const [pick, setPick] = useState(s[0]);
   const [status, setStatus] = useState(null);
 
-  // console.log("person: ", person);
-
+  // Return the uid for the collection ref based on if user is a TF or not
   const returnUID = () => {
     let uid;
 
@@ -111,7 +112,7 @@ const CPerson = ({ navigation, route }) => {
   useLayoutEffect(() => {
     const lastVal = returnCollectionRef();
 
-    console.log("lastVal: ", lastVal);
+    // console.log("lastVal: ", lastVal);
 
     // Collection Reference
     const collectionRef = collection(
@@ -126,7 +127,7 @@ const CPerson = ({ navigation, route }) => {
       querySnapshot.forEach((doc) => {
         if (doc.id === returnUID()) {
           setPick(doc.data().status);
-          console.log("CPerson: ", doc.data().status);
+          // console.log("CPerson: ", doc.data().status);
         }
       });
     });
@@ -168,26 +169,6 @@ const CPerson = ({ navigation, route }) => {
     // Set the pick
     setPick(status);
   };
-
-  console.log("Status: ", status);
-
-  // // Get the status
-  // const getStatus = async () => {
-  //   // Document Reference
-  //   const docRef = doc(db, "users", User.uid, "requests", returnUID());
-
-  //   // Get the status
-  //   const docSnap = await getDoc(docRef);
-
-  //   if (docSnap.exists()) {
-  //     setStatus(docSnap.data().status);
-  //   }
-  // };
-
-  // // Get the status on mount
-  // useLayoutEffect(() => {
-  //   getStatus();
-  // }, []);
 
   // Listen for changes in the status and then update the status
   useEffect(() => {
@@ -234,7 +215,7 @@ const CPerson = ({ navigation, route }) => {
               alignItems: "center",
             }}
           >
-            <Image
+            {/* <Image
               source={
                 person.photo === "default"
                   ? require("../../../../../../assets/icon.png")
@@ -246,6 +227,30 @@ const CPerson = ({ navigation, route }) => {
                 borderRadius: 64,
               }}
               resizeMode="contain"
+            /> */}
+
+            <CachedImage
+              source={{
+                uri: `${person.profilePhotoUrl}`, // (required) -- URI of the image to be cached
+                // headers: `Authorization: Bearer ${token}`, // (optional)
+                expiresIn: 2_628_288, // 1 month in seconds (optional), if not set -- will never expire and will be managed by the OS
+              }}
+              cacheKey={`${person.uid}-thumb`} // (required) -- key to store image locally
+              placeholderContent={
+                // (optional) -- shows while the image is loading
+                <FakeImage
+                  width={128}
+                  height={128}
+                  borderRadius={64}
+                  name={person.name}
+                />
+              }
+              resizeMode="contain" // pass-through to <Image /> tag
+              style={{
+                width: 128,
+                height: 128,
+                borderRadius: 64,
+              }}
             />
           </View>
           {/* Name and Status */}
@@ -401,7 +406,7 @@ const CPerson = ({ navigation, route }) => {
             <View
               style={{
                 flexDirection: "row",
-                justifyContent: "space-between",
+                justifyContent: "center",
                 alignItems: "center",
                 marginHorizontal: 10,
                 marginVertical: 20,
@@ -441,30 +446,6 @@ const CPerson = ({ navigation, route }) => {
                     }}
                   >
                     {status}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Stats */}
-              <View>
-                <Text
-                  style={{
-                    color: "#fff",
-                    textAlign: "center",
-                    fontSize: 25,
-                    fontWeight: "bold",
-                  }}
-                >
-                  Stats
-                </Text>
-                {/* Stats  */}
-                <View
-                  style={{
-                    marginTop: 10,
-                  }}
-                >
-                  <Text style={{ color: "#fff", fontSize: 18 }}>
-                    Total Helped: {person.totalHelped}
                   </Text>
                 </View>
               </View>

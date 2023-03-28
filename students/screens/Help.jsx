@@ -341,8 +341,8 @@ const Help = ({ navigation }) => {
             <FlatList
               data={filteredTFs ? filteredTFs : OnlineTFs}
               renderItem={({ item }) => {
-                console.log(getImg(item));
-                console.log("item: ", item);
+                // console.log(getImg(item));
+                // console.log("item: ", item);
                 return (
                   <TFView
                     TFs={item}

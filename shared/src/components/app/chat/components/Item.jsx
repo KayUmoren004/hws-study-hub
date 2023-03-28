@@ -1,7 +1,14 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 
 // Dependencies
-import { Image, StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import Colors from "../../../../utils/Colors";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -45,6 +52,9 @@ import {
 } from "firebase/database";
 import FirebaseConfig from "../../../../helpers/config/FirebaseConfig";
 import { UserContext } from "../../../../helpers/UserContext";
+
+import CachedImage from "expo-cached-image";
+import FakeImage from "../../profile/FakeImage";
 
 const app = initializeApp(FirebaseConfig);
 const db = getFirestore(app);
@@ -175,6 +185,8 @@ const Item = ({ navigation, data }) => {
 
   // console.log("Unread: ", unreadMessages);
 
+  // console.log("Data: ", data.message.fileName);
+
   return (
     <TouchableOpacity
       onPress={() => {
@@ -199,7 +211,7 @@ const Item = ({ navigation, data }) => {
           marginRight: 10,
         }}
       >
-        <Image
+        {/* <Image
           source={
             data.profilePhotoURL === "default"
               ? require("../../../../../../assets/icon.png")
@@ -211,6 +223,30 @@ const Item = ({ navigation, data }) => {
             borderRadius: 50,
           }}
           resizeMode="contain"
+        /> */}
+
+        <CachedImage
+          source={{
+            uri: `${data.profilePhotoURL}`, // (required) -- URI of the image to be cached
+            // headers: `Authorization: Bearer ${token}`, // (optional)
+            expiresIn: 2_628_288, // 1 month in seconds (optional), if not set -- will never expire and will be managed by the OS
+          }}
+          cacheKey={`${data.uid}-thumb`} // (required) -- key to store image locally
+          placeholderContent={
+            // (optional) -- shows while the image is loading
+            <FakeImage
+              width={50}
+              height={50}
+              borderRadius={50}
+              name={data.name}
+            />
+          }
+          resizeMode="contain" // pass-through to <Image /> tag
+          style={{
+            width: 50,
+            height: 50,
+            borderRadius: 50,
+          }}
         />
       </View>
       {/* NAME, MESSAGE AND UNREAD */}
@@ -281,7 +317,9 @@ const Item = ({ navigation, data }) => {
                   }}
                   numberOfLines={1}
                 >
-                  {data.message}
+                  {typeof data.message === "object"
+                    ? "Sent an Attachment"
+                    : data.message}
                 </Text>
               ) : (
                 <Text
@@ -290,7 +328,9 @@ const Item = ({ navigation, data }) => {
                   }}
                   numberOfLines={1}
                 >
-                  {data.message}
+                  {typeof data.message === "object"
+                    ? "Sent an Attachment"
+                    : data.message}
                 </Text>
               )
             }

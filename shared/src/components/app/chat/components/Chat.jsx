@@ -8,6 +8,8 @@ import React, {
   useLayoutEffect,
 } from "react";
 
+import * as ImagePicker from "expo-image-picker";
+
 // Dependencies
 import {
   Image,
@@ -19,12 +21,17 @@ import {
   // SafeAreaView,
   Linking,
   Platform,
+  Dimensions,
 } from "react-native";
 import {
   GiftedChat,
   InputToolbar,
   Actions,
   Send,
+  Message,
+  MessageImage,
+  Time,
+  Bubble,
 } from "react-native-gifted-chat";
 import Colors from "../../../../utils/Colors";
 import {
@@ -35,7 +42,8 @@ import { Divider } from "react-native-paper";
 import Header from "./Header";
 import { UserContext } from "../../../../helpers/UserContext";
 import { FirebaseContext } from "../../../../helpers/FirebaseContext";
-import { useIsFocused } from "@react-navigation/native";
+
+import * as DocumentPicker from "expo-document-picker";
 
 // Firebase
 import firebase from "firebase/compat/app";
@@ -84,13 +92,8 @@ const realtime = getDatabase(app);
 // Render
 import { CustomMessage } from "./Renders";
 
-const Left = () => {
-  return (
-    <TouchableOpacity style={{}} onPress={() => console.log("Attachment")}>
-      <Feather name="paperclip" size={20} color={Colors.white} />
-    </TouchableOpacity>
-  );
-};
+import * as MediaLibrary from "expo-media-library";
+import * as ImageManipulator from "expo-image-manipulator";
 
 const Chat = ({ navigation, route }) => {
   const [messages, setMessages] = useState([]);
@@ -116,7 +119,7 @@ const Chat = ({ navigation, route }) => {
         const lastMessage = values[values.length - 1];
         const lastKey = keys[keys.length - 1];
 
-        console.log("Chat.jsx.lastMessage: ", lastMessage);
+        // console.log("Chat.jsx.lastMessage: ", lastMessage);
 
         // Set the last message as read
         const messageRef = dbRef(
@@ -194,7 +197,7 @@ const Chat = ({ navigation, route }) => {
         />
       ),
     });
-  }, [navigation]);
+  }, [navigation, person, facetime, callPhoneNumber]);
 
   // Use the right UID
   const returnUID = () => {
@@ -278,19 +281,90 @@ const Chat = ({ navigation, route }) => {
     readMessage();
   }, []);
 
-  // Send Message
+  // Send Message - Files and Text
+  // const onSend = useCallback((messages = []) => {
+  //   // Custom message object
+
+  //   // console.log("Messages: ", messages);
+
+  //   const newMessages = messages.map((message) => ({
+  //     ...message,
+  //     message: message.text,
+  //     user: getUser(),
+  //     chatRoomId: returnUID(),
+  //     read: false,
+  //     type: message.fileInfo.type ? message.fileInfo.type : "text",
+  //     fileUri: message.fileInfo.fileUri ? message.fileInfo.fileUri : null,
+  //     fileName: message.fileInfo.fileName ? message.fileInfo.fileName : null,
+  //     fileType: message.fileInfo.fileType ? message.fileInfo.fileType : null,
+  //     fileHeight: message.fileInfo.fileHeight
+  //       ? message.fileInfo.fileHeight
+  //       : null,
+  //     fileWidth: message.fileInfo.fileWidth ? message.fileInfo.fileWidth : null,
+  //   }));
+
+  //   // console.log("New Message: ", newMessages);
+  //   Firebase.Messages.sendMessage(newMessages);
+  //   // console.log("Message has called Firebase: ", newMessages);
+  // }, []);
+
   const onSend = useCallback((messages = []) => {
     // Custom message object
-    const newMessages = messages.map((message) => ({
-      ...message,
-      message: message.text,
-      user: getUser(),
-      chatRoomId: returnUID(),
-      read: false,
-    }));
+
+    const newMessages = messages.map((message) => {
+      const hasFileInfo = message.fileInfo !== undefined;
+
+      return {
+        ...message,
+        message: message.text,
+        user: getUser(),
+        chatRoomId: returnUID(),
+        read: false,
+        type:
+          hasFileInfo && message.fileInfo.type ? message.fileInfo.type : "text",
+        fileUrl:
+          hasFileInfo && message.fileInfo.fileUrl
+            ? message.fileInfo.fileUrl
+            : null,
+        fileName:
+          hasFileInfo && message.fileInfo.fileName
+            ? message.fileInfo.fileName
+            : null,
+        fileType:
+          hasFileInfo && message.fileInfo.fileType
+            ? message.fileInfo.fileType
+            : null,
+        fileHeight:
+          hasFileInfo && message.fileInfo.fileHeight
+            ? message.fileInfo.fileHeight
+            : null,
+        fileWidth:
+          hasFileInfo && message.fileInfo.fileWidth
+            ? message.fileInfo.fileWidth
+            : null,
+      };
+    });
 
     Firebase.Messages.sendMessage(newMessages);
   }, []);
+
+  // Handle Send
+  const handleSend = async (messages) => {
+    if (!messages || messages.length === 0) return;
+
+    // console.log("Content: ", messages);
+
+    const content = messages[0].text;
+
+    if (typeof content === "string") {
+      onSend([{ text: content }], "text");
+    } else if (content instanceof File || content instanceof Blob) {
+      //  const file = await pickDocument();
+      console.log("File: ", content);
+    } else {
+      console.log("Error: ", content);
+    }
+  };
 
   // Get User
   const getUser = () => {
@@ -317,32 +391,7 @@ const Chat = ({ navigation, route }) => {
     }
   }, []);
 
-  // Create FaceTime Link
-  const generateFaceTimeLink = (phoneNumber) => {
-    const link = `facetime:${phoneNumber}`;
-    return link;
-  };
-
-  // Send FaceTime Link
-  const sendFaceTimeLink = (phoneNumber) => {
-    const link = generateFaceTimeLink(phoneNumber);
-    // const message = {
-    //   _id: Math.random().toString(36).substring(7),
-    //   text: link,
-    //   createdAt: new Date(),
-    //   user: getUser(),
-    // };
-
-    // Firebase.Messages.sendMessage([message]);
-
-    Linking.openURL(`sms:&body=${encodeURIComponent(link)}`);
-  };
-
-  // Link Clicked
-  // const linkClicked = (link) => {
-  //   Linking.openURL(link);
-  // };
-
+  // FaceTime
   function facetime(phoneNumber) {
     const url =
       Platform.OS === "ios" ? `facetime:${phoneNumber}` : `tel:${phoneNumber}`;
@@ -350,8 +399,142 @@ const Chat = ({ navigation, route }) => {
     Linking.openURL(url);
   }
 
+  // Call Phone Number
   function callPhoneNumber(phoneNumber) {
     Linking.openURL(`tel:${phoneNumber}`);
+  }
+
+  // Send Document
+  const isAllowedFileType = (uri) => {
+    const allowedExtensions = [
+      "pdf",
+      "doc",
+      "docx",
+      "xls",
+      "xlsx",
+      "ppt",
+      "pptx",
+      "txt",
+      "rtf",
+    ];
+    const fileExtension = uri.split(".").pop().toLowerCase();
+    return allowedExtensions.includes(fileExtension);
+  };
+
+  const pickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "*/*",
+        copyToCacheDirectory: false,
+      });
+
+      if (result.type !== "cancel") {
+        const fileSizeInMB = result.size / (1024 * 1024);
+        const allowed = isAllowedFileType(result.uri);
+        if (
+          fileSizeInMB <= 10 &&
+          allowed === true &&
+          result.uri !== null &&
+          result.uri !== undefined
+        ) {
+          const fileExtension = result.uri.split(".").pop().toLowerCase();
+          const fileName = result.name.split(".").slice(0, -1).join(".");
+
+          const file = {
+            uri: result.uri,
+            name: fileName,
+            type: fileExtension,
+          };
+          return file;
+        } else {
+          console.log(
+            "Invalid file selection. Ensure the file is less than 10MB and a common document type."
+          );
+        }
+      } else {
+        console.log("File picking was cancelled");
+      }
+    } catch (err) {
+      console.error("Error picking document:", err);
+    }
+    return null;
+  };
+
+  // Send Image
+  async function requestPermissions() {
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+
+    if (status === "granted") {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  async function pickImage() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+    });
+
+    if (!result.canceled) {
+      return result;
+    } else {
+      return null;
+    }
+  }
+
+  async function manipulateImage(asset, aspectRatio) {
+    const manipulatedImage = await ImageManipulator.manipulateAsync(
+      asset.assets[0].uri,
+      [{ resize: { width: aspectRatio.width, height: aspectRatio.height } }],
+      { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+    );
+    return manipulatedImage;
+  }
+
+  async function handleButtonClick() {
+    const hasPermissions = await requestPermissions();
+
+    if (!hasPermissions) {
+      console.log("Permissions not granted");
+      return;
+    }
+
+    const selectedAsset = await pickImage();
+
+    if (selectedAsset) {
+      const aspectRatio = {
+        width: selectedAsset.assets[0].width,
+        height: selectedAsset.assets[0].height,
+
+        // width: 9,
+        // height: 16,
+      };
+      const name = selectedAsset.assets[0].fileName;
+
+      const manipulatedImage = await manipulateImage(
+        selectedAsset,
+        aspectRatio
+      );
+
+      // Do something with the manipulated image
+      // console.log("Manipulated image:", manipulatedImage);
+
+      const file = {
+        uri: manipulatedImage.uri,
+        name: name ? name : "Attachment: Image",
+        type: "image",
+        height: aspectRatio.height,
+        width: aspectRatio.width,
+      };
+
+      // console.log("File: ", file);
+
+      return file;
+    } else {
+      console.log("No image was picked");
+    }
   }
 
   return (
@@ -365,17 +548,147 @@ const Chat = ({ navigation, route }) => {
         messages={messages}
         onSend={(messages) => onSend(messages)}
         user={getUser()}
-        renderMessage={(props) => <CustomMessage {...props} />}
-        // renderUsernameOnMessage={true}
+        renderMessage={(props) => {
+          // Destructure props
+          const { currentMessage } = props;
+
+          const text = currentMessage.text.type
+            ? `File: ${currentMessage.text.fileName}`
+            : currentMessage.text;
+
+          const url = currentMessage.text.fileUrl;
+
+          const type = currentMessage.text.type;
+
+          // console.log("Text - Chat.jsx: ", text);
+
+          // Edit props to change currentMessage.text to the text passed into this component
+          const newProps = {
+            ...props,
+            currentMessage: {
+              ...props.currentMessage,
+              text: text,
+              type:
+                currentMessage.text.type && currentMessage.text.type !== "image"
+                  ? "file"
+                  : null,
+            },
+          };
+          const imageProps = {
+            ...props,
+            currentMessage: {
+              ...props.currentMessage,
+              text: "",
+              image: url,
+            },
+          };
+
+          // Return message
+          return type === "image" ? (
+            <Message
+              // renderBubble={(props) => {
+              //   console.log("Props: ", props);
+              //   return type === "image" ? (
+              //     <Bubble
+              //       {...imageProps}
+              //       // containerStyle={{
+              //       //   left: {
+              //       //     backgroundColor: "#000",
+              //       //   },
+              //       //   right: {
+              //       //     backgroundColor: "#000",
+              //       //   },
+              //       // }}
+              //       bottomContainerStyle={{
+              //         left: {
+              //           backgroundColor: "#000",
+              //         },
+              //         right: {
+              //           backgroundColor: "#000",
+              //         },
+              //       }}
+              //       wrapperStyle={{
+              //         left: {
+              //           backgroundColor: "#000",
+              //         },
+              //         right: {
+              //           backgroundColor: "#000",
+              //         },
+              //       }}
+              //       containerStyle={{
+              //         left: {
+              //           backgroundColor: "#000",
+              //         },
+              //         right: {
+              //           backgroundColor: "#000",
+              //         },
+              //       }}
+              //     />
+              //   ) : (
+              //     <Bubble {...imageProps} />
+              //   );
+              // }}
+              {...imageProps}
+            />
+          ) : (
+            <CustomMessage
+              text={text}
+              url={url}
+              type={currentMessage.text.type}
+              {...newProps}
+            />
+          );
+        }}
         showAvatarForEveryMessage={true}
         wrapInSafeArea={false}
         placeholder="Message..."
         renderAvatarOnTop={true}
         renderFooter={() => <View style={{ height: 10 }} />}
         isTyping={true}
-        // alwaysShowSend={true}
         renderActions={(props) => (
-          <Actions {...props} icon={() => <Left />} options={{}} />
+          <Actions
+            {...props}
+            options={{
+              ["Send Image"]: async () => {
+                console.log("Send Image - Before handleButtonClick");
+                const File = await handleButtonClick();
+                console.log("Send Image - After handleButtonClick", File);
+                onSend([
+                  {
+                    text: `Image attached: ${File.name}`,
+                    fileInfo: {
+                      type: "image",
+                      fileUrl: File.uri,
+                      fileName: File.name,
+                      fileType: File.type,
+                      fileHeight: File.height,
+                      fileWidth: File.width,
+                    },
+                  },
+                ]);
+                console.log("Send Image - After onSend");
+              },
+
+              ["Send Files"]: async () => {
+                const file = await pickDocument();
+                onSend([
+                  {
+                    text: `File attached: ${file.name}`,
+                    fileInfo: {
+                      type: "file",
+                      fileUrl: file.uri,
+                      fileName: file.name,
+                      fileType: file.type,
+                    },
+                  },
+                ]);
+              },
+              ["Cancel"]: () => {},
+            }}
+            icon={() => (
+              <Feather name="paperclip" size={20} color={Colors.white} />
+            )}
+          />
         )}
         bottomOffset={insets.bottom}
         renderSend={(props) => (
@@ -401,7 +714,7 @@ const Chat = ({ navigation, route }) => {
             {...props}
             containerStyle={{
               backgroundColor: "transparent",
-              paddingTop: 6,
+              marginTop: 6,
               marginHorizontal: 6,
               borderTopColor: Colors.lightGray,
             }}
@@ -409,6 +722,41 @@ const Chat = ({ navigation, route }) => {
         )}
         textInputProps={{
           color: "#fff",
+        }}
+        renderMessageImage={(props) => {
+          return (
+            <MessageImage
+              {...props}
+              imageStyle={{
+                width: Dimensions.get("window").width * 0.6,
+                height: Dimensions.get("window").width,
+                resizeMode: "center",
+              }}
+              containerStyle={{
+                backgroundColor: "#000",
+              }}
+            />
+          );
+        }}
+        renderBubble={(props) => {
+          const { currentMessage } = props;
+
+          const type = currentMessage.image ? "image" : "text";
+          return type === "image" ? (
+            <Bubble
+              {...props}
+              bottomContainerStyle={{
+                left: {
+                  backgroundColor: "#000",
+                },
+                right: {
+                  backgroundColor: "#000",
+                },
+              }}
+            />
+          ) : (
+            <Bubble {...props} />
+          );
         }}
       />
     </SafeAreaView>

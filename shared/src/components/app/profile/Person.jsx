@@ -23,6 +23,9 @@ import { RequestHelp } from "../../../utils/Validation";
 import Delimitated from "../Tag/Delimitated";
 import Tag from "../Tag/Tag";
 
+import CachedImage from "expo-cached-image";
+import FakeImage from "./FakeImage";
+
 // Loading Component
 const Loading = () => {
   return (
@@ -105,7 +108,7 @@ const Person = ({ route, navigation }) => {
               alignItems: "center",
             }}
           >
-            <Image
+            {/* <Image
               source={
                 person.photo === "default"
                   ? require("../../../../../assets/icon.png")
@@ -117,6 +120,30 @@ const Person = ({ route, navigation }) => {
                 borderRadius: 64,
               }}
               resizeMode="contain"
+            /> */}
+
+            <CachedImage
+              source={{
+                uri: `${person.profilePhotoUrl}`, // (required) -- URI of the image to be cached
+                // headers: `Authorization: Bearer ${token}`, // (optional)
+                expiresIn: 2_628_288, // 1 month in seconds (optional), if not set -- will never expire and will be managed by the OS
+              }}
+              cacheKey={`${person.uid}-thumb`} // (required) -- key to store image locally
+              placeholderContent={
+                // (optional) -- shows while the image is loading
+                <FakeImage
+                  width={108}
+                  height={108}
+                  borderRadius={64}
+                  name={person.name}
+                />
+              }
+              resizeMode="contain" // pass-through to <Image /> tag
+              style={{
+                width: 108,
+                height: 108,
+                borderRadius: 64,
+              }}
             />
           </View>
           {/* Name and Status */}

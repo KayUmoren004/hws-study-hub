@@ -46,6 +46,7 @@ import {
 } from "firebase/database";
 import FirebaseConfig from "../../../../shared/src/helpers/config/FirebaseConfig";
 import Functions from "../../helpers/Functions";
+import { ActivityIndicator } from "react-native-paper";
 
 const app = initializeApp(FirebaseConfig);
 const db = getFirestore(app);
@@ -113,7 +114,10 @@ const Chat = ({ navigation }) => {
                 const newConversation = {
                   id: conversation.chatRoomId,
                   name: talkingTo.name,
-                  message: conversation.message,
+                  message:
+                    conversation.message.type === "file"
+                      ? conversation.message.fileName
+                      : conversation.message,
                   time: Functions.timeParse(conversation.timeStamp),
                   profilePhotoURL: talkingTo.profilePhotoUrl,
                   talkingTo: talkingTo,
@@ -121,6 +125,7 @@ const Chat = ({ navigation }) => {
                     return beta[key].chatRoomId.includes(User.uid);
                   }),
                 };
+                // console.log("newConversation", newConversation);
                 newData.push(newConversation);
                 if (newData.length === chatRooms.length) {
                   // Sort conversations by the latest message for each chat room
@@ -150,7 +155,19 @@ const Chat = ({ navigation }) => {
           flex: 1,
         }}
       >
-        <Chats navigation={navigation} data={data} />
+        {data ? (
+          <Chats navigation={navigation} data={data} />
+        ) : (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <ActivityIndicator size="large" color="#fff" />
+          </View>
+        )}
       </View>
     </View>
   );
@@ -164,94 +181,3 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
   },
 });
-
-// const data = [
-//   {
-//     id: 1,
-//     name: "John Doe",
-//     message: "Hello there, how are you?",
-//     time: "4:20 PM",
-//     unread: 2,
-//     profilePhotoURL: "https://picsum.photos/200",
-//   },
-//   {
-//     id: 2,
-//     name: "Jane Doe",
-//     message: "Hello there, how are you?",
-//     time: "4:20 PM",
-//     unread: 2,
-//     profilePhotoURL: "https://picsum.photos/200",
-//   },
-//   {
-//     id: 3,
-//     name: "Jane Doe",
-//     message: "Hello there, how are you?",
-//     time: "4:20 PM",
-//     unread: 2,
-//     profilePhotoURL: "https://picsum.photos/200",
-//   },
-//   {
-//     id: 4,
-//     name: "Jane Doe",
-//     message: "Hello there, how are you?",
-//     time: "4:20 PM",
-//     unread: 2,
-//     profilePhotoURL: "https://picsum.photos/200",
-//   },
-//   {
-//     id: 5,
-//     name: "Jane Doe",
-//     message: "Hello there, how are you?",
-//     time: "4:20 PM",
-//     unread: 2,
-//     profilePhotoURL: "https://picsum.photos/200",
-//   },
-//   {
-//     id: 6,
-//     name: "Jane Doe",
-//     message: "Hello there, how are you?",
-//     time: "4:20 PM",
-//     unread: 2,
-//     profilePhotoURL: "https://picsum.photos/200",
-//   },
-//   {
-//     id: 7,
-//     name: "Jane Doe",
-//     message: "Hello there, how are you?",
-//     time: "4:20 PM",
-//     unread: 2,
-//     profilePhotoURL: "https://picsum.photos/200",
-//   },
-//   {
-//     id: 8,
-//     name: "Jane Doe",
-//     message: "Hello there, how are you?",
-//     time: "4:20 PM",
-//     unread: 2,
-//     profilePhotoURL: "https://picsum.photos/200",
-//   },
-//   {
-//     id: 9,
-//     name: "Jane Doe",
-//     message: "Hello there, how are you?",
-//     time: "4:20 PM",
-//     unread: 2,
-//     profilePhotoURL: "https://picsum.photos/200",
-//   },
-//   {
-//     id: 10,
-//     name: "Jane Doe",
-//     message: "Hello there, how are you?",
-//     time: "4:20 PM",
-//     unread: 2,
-//     profilePhotoURL: "https://picsum.photos/200",
-//   },
-//   {
-//     id: 11,
-//     name: "Jane Doe",
-//     message: "Hello there, how are you?",
-//     time: "4:20 PM",
-//     unread: 2,
-//     profilePhotoURL: "https://picsum.photos/200",
-//   },
-// ];

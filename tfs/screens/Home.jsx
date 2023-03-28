@@ -157,7 +157,7 @@ const Home = ({ navigation }) => {
     let img;
 
     if (item.profilePhotoUrl !== "default") {
-      console.log("Local Photo: ", item.localPhotoUrl);
+      // console.log("Local Photo: ", item.localPhotoUrl);
 
       if (
         (img === null || img === undefined || img === "") &&

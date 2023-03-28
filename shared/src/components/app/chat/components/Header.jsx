@@ -9,8 +9,11 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import Colors from "../../../../utils/Colors";
+
+import CachedImage from "expo-cached-image";
 
 // Firebase
 import firebase from "firebase/compat/app";
@@ -51,6 +54,7 @@ import {
   update,
 } from "firebase/database";
 import FirebaseConfig from "../../../../helpers/config/FirebaseConfig";
+import FakeImage from "../../profile/FakeImage";
 
 const app = initializeApp(FirebaseConfig);
 const db = getFirestore(app);
@@ -129,7 +133,7 @@ const Header = ({ navigation, person, faceTime, phoneNumber, num }) => {
               marginHorizontal: 10,
             }}
           >
-            <Image
+            {/* <Image
               source={
                 person.profilePhotoUrl === "default"
                   ? require("../../../../../../assets/icon.png")
@@ -141,6 +145,30 @@ const Header = ({ navigation, person, faceTime, phoneNumber, num }) => {
                 borderRadius: 50,
               }}
               resizeMode="contain"
+            /> */}
+
+            <CachedImage
+              source={{
+                uri: `${person.profilePhotoUrl}`, // (required) -- URI of the image to be cached
+                // headers: `Authorization: Bearer ${token}`, // (optional)
+                expiresIn: 2_628_288, // 1 month in seconds (optional), if not set -- will never expire and will be managed by the OS
+              }}
+              cacheKey={`${person.uid}-thumb`} // (required) -- key to store image locally
+              placeholderContent={
+                // (optional) -- shows while the image is loading
+                <FakeImage
+                  width={50}
+                  height={50}
+                  borderRadius={50}
+                  name={person.name}
+                />
+              }
+              resizeMode="contain" // pass-through to <Image /> tag
+              style={{
+                width: 50,
+                height: 50,
+                borderRadius: 50,
+              }}
             />
           </View>
           <View
@@ -186,7 +214,7 @@ const Header = ({ navigation, person, faceTime, phoneNumber, num }) => {
               onPress={() =>
                 num === undefined
                   ? alert(
-                      "You need to add a phone number to your profile first"
+                      "The person you are chatting with needs to add a phone number to their profile first"
                     )
                   : phoneNumber(num)
               }
@@ -203,7 +231,7 @@ const Header = ({ navigation, person, faceTime, phoneNumber, num }) => {
               onPress={() =>
                 num === undefined
                   ? alert(
-                      "You need to add a phone number to your profile first"
+                      "The person you are chatting with needs to add a phone number to their profile first"
                     )
                   : faceTime(num)
               }

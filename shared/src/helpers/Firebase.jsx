@@ -126,23 +126,23 @@ const Auth = {
   uploadProfilePhoto: async (uri) => {
     const uid = Auth.getCurrentUser().uid;
     try {
-      console.log("Init, ", uri);
+      // console.log("Init, ", uri);
       const photo = await Auth.getBlob(uri);
-      console.log("Modified URI: ", photo);
+      // console.log("Modified URI: ", photo);
       // const photo = await fetch(uri).then((r) => r.blob());
-      console.log("0");
+      // console.log("0");
       const imageRef = ref(storage, `profilePhotos/${uid}/p-photo`);
-      console.log("1");
+      // console.log("1");
       await uploadBytes(imageRef, photo);
-      console.log("2");
+      // console.log("2");
 
       const url = await getDownloadURL(imageRef);
-      console.log("3");
+      // console.log("3");
 
       await updateDoc(doc(db, "users", uid), {
         profilePhotoUrl: url,
       });
-      console.log("4");
+      // console.log("4");
 
       return url;
     } catch (err) {
@@ -194,7 +194,6 @@ const Auth = {
         createdAt: serverTimestamp(),
         tags: ["default"],
         totalHelped: 0,
-        localPhotoUrl: user.localPhotoUrl,
       });
       if (user.profilePhoto) {
         profilePhotoUrl = await Auth.uploadProfilePhoto(user.profilePhoto);
@@ -604,7 +603,7 @@ const Messages = {
       const unreadPre = unreadPreSnap.val();
       let u = [];
 
-      console.log("unreadPre: ", unreadPre);
+      // console.log("unreadPre: ", unreadPre);
 
       // Push elements unreadPre to u
       if (unreadPre) {
@@ -638,6 +637,80 @@ const Messages = {
     }
   },
 
+  // // Send a message
+  // sendMessage: async (messages) => {
+  //   messages.forEach(async (item) => {
+  //     try {
+  //       // Deconstruct chatRoomId
+  //       const [receiverUID, senderUID] = item.chatRoomId.split("-");
+
+  //       // Create message object
+  //       const message = {
+  //         message: item.message,
+  //         timeStamp: dbServerTimestamp(),
+  //         user: item.user,
+  //         chatRoomId: item.chatRoomId,
+  //         read: false,
+  //         senderUID: item.user._id === senderUID ? senderUID : receiverUID,
+  //         receiverUID: item.user._id === senderUID ? receiverUID : senderUID,
+  //       };
+
+  //       const massageRef = dbRef(realtime, "messages/" + message.chatRoomId);
+
+  //       // Get Document key of the pushed message
+  //       const key = await push(massageRef, message).key;
+
+  //       // update message just sent with key
+  //       await update(
+  //         dbRef(realtime, "messages/" + message.chatRoomId + "/" + key),
+  //         { key: key }
+  //       );
+
+  //       // Create unread object
+  //       const unread = {
+  //         receiverUID: message.receiverUID,
+  //         key: key,
+  //         chatRoomId: message.chatRoomId,
+  //       };
+
+  //       // Create unread message
+  //       await Messages.createUnreadMessage(unread);
+  //     } catch (err) {
+  //       console.log("Error @Firebase.sendMessage: ", err.message);
+  //     }
+  //   });
+  // },
+
+  // // Parse messages
+  // parseMessages: (message) => {
+  //   const { user, message: text, timeStamp, chatRoomId, read } = message.val();
+  //   const { key: _id } = message;
+  //   const createdAt = new Date(timeStamp);
+  //   const isRead = read;
+
+  //   return {
+  //     _id,
+  //     createdAt,
+  //     text,
+  //     user,
+  //     chatRoomId,
+  //     isRead,
+  //   };
+  // },
+
+  // // Get messages
+  // getMessages: async (callback, chatRoomId) => {
+  //   try {
+  //     const messageRef = dbRef(realtime, "messages/" + chatRoomId);
+
+  //     onChildAdded(messageRef, (snapshot) =>
+  //       callback(Messages.parseMessages(snapshot))
+  //     );
+  //   } catch (err) {
+  //     console.log("Error @Firebase.getMessages: ", err.message);
+  //   }
+  // },
+
   // Send a message
   sendMessage: async (messages) => {
     messages.forEach(async (item) => {
@@ -645,9 +718,38 @@ const Messages = {
         // Deconstruct chatRoomId
         const [receiverUID, senderUID] = item.chatRoomId.split("-");
 
+        // Check if the message is a file or a regular message
+        let messageContent = item.text;
+        // console.log("item-firebase: ", item);
+        if (item.fileInfo) {
+          const fileRef = ref(
+            storage,
+            `messages/files/${item.chatRoomId}/${item.fileInfo.fileName}`
+          );
+          await uploadBytes(fileRef, await Auth.getBlob(item.fileInfo.fileUrl));
+          // console.log("Uploaded a blob or file!");
+          const downloadURL = await getDownloadURL(fileRef);
+          // console.log("downloadURL: ", downloadURL);
+          messageContent = {
+            fileName: item.fileName,
+            fileUrl: downloadURL,
+            fileType: item.fileType,
+            type: item.type,
+            height: item.fileHeight,
+            width: item.fileWidth,
+          };
+          // console.log("messageContent: ", messageContent);
+        }
+
+        // else {
+        //   messageContent = {
+        //     text: item.text,
+        //   };
+        // }
+
         // Create message object
         const message = {
-          message: item.message,
+          message: messageContent,
           timeStamp: dbServerTimestamp(),
           user: item.user,
           chatRoomId: item.chatRoomId,
@@ -655,6 +757,8 @@ const Messages = {
           senderUID: item.user._id === senderUID ? senderUID : receiverUID,
           receiverUID: item.user._id === senderUID ? receiverUID : senderUID,
         };
+
+        // console.log("message: ", message);
 
         const massageRef = dbRef(realtime, "messages/" + message.chatRoomId);
 
@@ -684,15 +788,23 @@ const Messages = {
 
   // Parse messages
   parseMessages: (message) => {
-    const { user, message: text, timeStamp, chatRoomId, read } = message.val();
+    const {
+      user,
+      message: messageContent,
+      timeStamp,
+      chatRoomId,
+      read,
+    } = message.val();
     const { key: _id } = message;
     const createdAt = new Date(timeStamp);
     const isRead = read;
 
+    // console.log("MessageContent: ", message);
+
     return {
       _id,
       createdAt,
-      text,
+      text: messageContent,
       user,
       chatRoomId,
       isRead,
@@ -827,6 +939,59 @@ const Messages = {
       return conversations;
     } catch (err) {
       console.log("Error @Firebase.getConversations: ", err.message);
+    }
+  },
+
+  // Send Documents
+  sendDocuments: async (file, chatRoomId) => {
+    try {
+      // Storage Ref
+      const storageRef = ref(
+        storage,
+        `messages/${chatRoomId}/documents/${file.name}`
+      );
+
+      // Create blob
+      const response = await fetch(file.uri);
+      const blob = await response.blob();
+
+      // Upload file
+      await uploadBytes(storageRef, blob);
+
+      // Get download URL
+      const downloadURL = await getDownloadURL(storageRef);
+
+      // Get current user
+      const currentUser = Firebase.Auth.getCurrentUser();
+
+      // Get current time
+      const timeStamp = serverTimestamp();
+
+      // Create message object
+      const message = {
+        message: downloadURL,
+        timeStamp,
+        user: {
+          _id: currentUser.uid,
+          name: currentUser.displayName,
+          avatar: currentUser.photoURL,
+        },
+        chatRoomId,
+        isRead: false,
+      };
+
+      // Push message to firebase realtime database
+      await push(dbRef(realtime, "messages/" + chatRoomId), message);
+
+      // Update last message
+      // await set(
+      //   dbRef(realtime, "messages/" + chatRoomId + "/lastMessage"),
+      //   message
+      // );
+
+      return true;
+    } catch (err) {
+      console.log("Error @Firebase.sendDocuments: ", err.message);
     }
   },
 };
